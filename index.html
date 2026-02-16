@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yohei Furukawa | Coder Portfolio</title>
+  <meta name="description" content="古川洋平のポートフォリオサイト。コーダー歴3年半の実績と作品をご覧ください。">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- OGP -->
+  <meta property="og:title" content="Yohei Furukawa | Coder Portfolio">
+  <meta property="og:description" content="古川洋平のポートフォリオサイト。コーダー歴3年半の実績と作品をご覧ください。">
+  <meta property="og:type" content="website">
+  <!-- TODO: 本番デプロイ時に絶対URLに変更する -->
+  <meta property="og:image" content="images/ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Favicon -->
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ローディング画面 -->
+  <div id="js-loader" class="loader" role="status" aria-live="polite">
+    <div class="loader__inner">
+      <span class="loader__text">LOADING</span>
+      <div class="loader__bar">
+        <div class="loader__bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ヘッダー -->
+  <header class="header" id="js-header">
+    <div class="header__inner">
+      <a href="#" class="header__logo">YF<span class="u-accent">.</span></a>
+
+      <nav class="header__nav" aria-label="メインナビゲーション">
+        <ul class="header__nav-list">
+          <li><a href="#about" class="header__nav-link js-nav-link">About</a></li>
+          <li><a href="#works" class="header__nav-link js-nav-link">Works</a></li>
+          <li><a href="#contact" class="header__nav-link js-nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <button
+        class="header__hamburger js-hamburger"
+        id="js-hamburger"
+        type="button"
+        aria-label="メニューを開く"
+        aria-expanded="false"
+        aria-controls="js-mobile-menu"
+      >
+        <span class="header__hamburger-line"></span>
+        <span class="header__hamburger-line"></span>
+        <span class="header__hamburger-line"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- モバイルメニュー -->
+  <div class="mobile-menu" id="js-mobile-menu" aria-hidden="true">
+    <nav aria-label="モバイルナビゲーション">
+      <ul class="mobile-menu__list">
+        <li><a href="#about" class="mobile-menu__link js-nav-link">About</a></li>
+        <li><a href="#works" class="mobile-menu__link js-nav-link">Works</a></li>
+        <li><a href="#contact" class="mobile-menu__link js-nav-link">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <main>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+      <div class="hero__bg-grid" aria-hidden="true"></div>
+      <canvas id="js-particles" class="hero__particles" aria-hidden="true"></canvas>
+      <div class="hero__content">
+        <p class="hero__greeting">Hello, I'm</p>
+        <h1 class="hero__name">
+          <span class="hero__name-line">Yohei</span>
+          <span class="hero__name-line">Furukawa<span class="u-accent">.</span></span>
+        </h1>
+        <p class="hero__title" id="js-typing"><span class="hero__typing-text"></span><span class="hero__typing-cursor" aria-hidden="true">|</span></p>
+        <p class="hero__description">
+          コード × デザインで<br class="u-sp-only">想いをカタチに。
+        </p>
+        <div class="hero__cta">
+          <a href="#works" class="btn btn--primary">Works を見る</a>
+          <a href="#contact" class="btn btn--outline">お問い合わせ</a>
+        </div>
+      </div>
+      <div class="hero__scroll-indicator" aria-hidden="true">
+        <span>Scroll</span>
+        <div class="hero__scroll-line"></div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="section section--about" id="about" aria-labelledby="about-title">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__number">01</span>
+          <h2 class="section__title js-split-text" id="about-title">About<span class="u-accent">.</span></h2>
+        </div>
+        <div class="about__grid">
+          <div class="about__text">
+            <h3 class="about__heading">自己紹介</h3>
+            <p>
+              古川洋平と申します。コーダー歴3年半、Webサイトのコーディングを専門としています。
+              デザインカンプからの正確な再現はもちろん、アニメーションや
+              インタラクションを取り入れた、ユーザー体験を意識したコーディングを得意としています。
+            </p>
+            <p>
+              常に新しい技術やトレンドをキャッチアップし、
+              より良いWebサイトを作ることに情熱を注いでいます。
+            </p>
+            <dl class="about__info">
+              <div class="about__info-item">
+                <dt class="about__info-label">Name</dt>
+                <dd class="about__info-value">古川 洋平</dd>
+              </div>
+              <div class="about__info-item">
+                <dt class="about__info-label">Role</dt>
+                <dd class="about__info-value">コーダー</dd>
+              </div>
+              <div class="about__info-item">
+                <dt class="about__info-label">Experience</dt>
+                <dd class="about__info-value">3.5 Years</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="about__skills">
+            <h3 class="about__heading">Skills</h3>
+            <ul class="skills-grid" role="list">
+              <li class="skill-card"><span class="skill-card__name">HTML</span></li>
+              <li class="skill-card"><span class="skill-card__name">CSS</span></li>
+              <li class="skill-card"><span class="skill-card__name">JavaScript</span></li>
+              <li class="skill-card"><span class="skill-card__name">jQuery</span></li>
+              <li class="skill-card"><span class="skill-card__name">GSAP</span></li>
+              <li class="skill-card"><span class="skill-card__name">WordPress</span></li>
+              <li class="skill-card"><span class="skill-card__name">Git</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 経歴タイムライン -->
+        <div class="about__timeline">
+          <h3 class="about__heading">Career</h3>
+          <div class="timeline">
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__content">
+                <span class="timeline__year">2022.04</span>
+                <h4 class="timeline__title">Web制作会社にコーダーとして入社</h4>
+                <p class="timeline__desc">HTML/CSS/jQueryを中心に、LP・コーポレートサイトのコーディングを担当。デザインカンプからのピクセルパーフェクトな再現力を磨く。</p>
+              </div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__content">
+                <span class="timeline__year">2023.01</span>
+                <h4 class="timeline__title">大型リニューアル案件にメインコーダーとして参画</h4>
+                <p class="timeline__desc">100ページ超のコーポレートサイトリニューアルをリード。コーディング規約の策定からチーム開発の効率化まで経験。</p>
+              </div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__content">
+                <span class="timeline__year">2024.03</span>
+                <h4 class="timeline__title">WordPress構築を本格的に開始</h4>
+                <p class="timeline__desc">PHPテンプレート制作やカスタム投稿タイプの実装など、CMSを活用した更新性の高いサイト制作のスキルを習得。</p>
+              </div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__content">
+                <span class="timeline__year">2025.06</span>
+                <h4 class="timeline__title">アニメーション・インタラクション実装に特化</h4>
+                <p class="timeline__desc">GSAP/ScrollTriggerを活用したリッチなインタラクションを得意分野に。現在はユーザー体験重視のモダンなサイト制作に注力中。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Works -->
+    <section class="section section--works" id="works" aria-labelledby="works-title">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__number">02</span>
+          <h2 class="section__title js-split-text" id="works-title">Works<span class="u-accent">.</span></h2>
+        </div>
+        <!-- フィルター -->
+        <div class="works-filter" id="js-works-filter">
+          <button class="works-filter__btn is-active" type="button" data-filter="all">All</button>
+          <button class="works-filter__btn" type="button" data-filter="HTML">HTML</button>
+          <button class="works-filter__btn" type="button" data-filter="CSS">CSS</button>
+          <button class="works-filter__btn" type="button" data-filter="jQuery">jQuery</button>
+          <button class="works-filter__btn" type="button" data-filter="JavaScript">JavaScript</button>
+          <button class="works-filter__btn" type="button" data-filter="WordPress">WordPress</button>
+          <button class="works-filter__btn" type="button" data-filter="GSAP">GSAP</button>
+        </div>
+
+        <div class="works-grid" id="js-works-grid">
+
+          <article class="work-card js-work-card" data-tags="HTML,CSS,jQuery"
+            data-detail-role="コーディング全般（デザインカンプからの実装）"
+            data-detail-period="2023年6月 — 約2週間"
+            data-detail-point="スクロール連動アニメーションを取り入れ、商品の魅力を段階的に伝えるストーリー性のあるLPに仕上げました。Lighthouseスコア95以上を達成し、パフォーマンスにも配慮。">
+            <div class="work-card__image">
+              <div class="work-card__placeholder">
+                <span>Project 01</span>
+              </div>
+              <div class="work-card__overlay">
+                <a href="#" class="btn btn--small" target="_blank" rel="noopener noreferrer">View Site</a>
+              </div>
+            </div>
+            <div class="work-card__body">
+              <ul class="work-card__tags" aria-label="使用技術">
+                <li class="tag">HTML</li>
+                <li class="tag">CSS</li>
+                <li class="tag">jQuery</li>
+              </ul>
+              <h3 class="work-card__title">コスメブランド LP</h3>
+              <p class="work-card__desc">スクロールアニメーションで商品の世界観を演出したランディングページ。</p>
+              <button class="work-card__detail js-work-detail" type="button">Detail <span aria-hidden="true">&rarr;</span></button>
+            </div>
+          </article>
+
+          <article class="work-card js-work-card" data-tags="HTML,CSS,JavaScript"
+            data-detail-role="コーディング・レスポンシブ設計"
+            data-detail-period="2024年1月 — 約1ヶ月"
+            data-detail-point="100ページ超のリニューアル案件でメインコーダーを担当。BEM設計とCSS変数でメンテナブルなコードベースを構築し、チーム開発の効率化を実現。">
+            <div class="work-card__image">
+              <div class="work-card__placeholder">
+                <span>Project 02</span>
+              </div>
+              <div class="work-card__overlay">
+                <a href="#" class="btn btn--small" target="_blank" rel="noopener noreferrer">View Site</a>
+              </div>
+            </div>
+            <div class="work-card__body">
+              <ul class="work-card__tags" aria-label="使用技術">
+                <li class="tag">HTML</li>
+                <li class="tag">CSS</li>
+                <li class="tag">JavaScript</li>
+              </ul>
+              <h3 class="work-card__title">IT企業 コーポレートサイト</h3>
+              <p class="work-card__desc">BEM設計とCSS変数で保守性の高い実装を実現したレスポンシブ対応サイト。</p>
+              <button class="work-card__detail js-work-detail" type="button">Detail <span aria-hidden="true">&rarr;</span></button>
+            </div>
+          </article>
+
+          <article class="work-card js-work-card" data-tags="WordPress,CSS,GSAP"
+            data-detail-role="WordPress構築・フロントエンド全般"
+            data-detail-period="2024年8月 — 約3週間"
+            data-detail-point="カスタム投稿タイプとACFを活用した更新性の高いブログサイト。GSAPによるスクロール演出で、読み心地の良いUIを実装。">
+            <div class="work-card__image">
+              <div class="work-card__placeholder">
+                <span>Project 03</span>
+              </div>
+              <div class="work-card__overlay">
+                <a href="#" class="btn btn--small" target="_blank" rel="noopener noreferrer">View Site</a>
+              </div>
+            </div>
+            <div class="work-card__body">
+              <ul class="work-card__tags" aria-label="使用技術">
+                <li class="tag">WordPress</li>
+                <li class="tag">CSS</li>
+                <li class="tag">GSAP</li>
+              </ul>
+              <h3 class="work-card__title">ライフスタイルメディア</h3>
+              <p class="work-card__desc">WordPressで構築したGSAPアニメーション付きブログサイト。</p>
+              <button class="work-card__detail js-work-detail" type="button">Detail <span aria-hidden="true">&rarr;</span></button>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="section section--contact" id="contact" aria-labelledby="contact-title">
+      <div class="container">
+        <div class="section__header">
+          <span class="section__number">03</span>
+          <h2 class="section__title js-split-text" id="contact-title">Contact<span class="u-accent">.</span></h2>
+        </div>
+        <p class="contact__lead">お仕事のご依頼・ご相談はお気軽にどうぞ。</p>
+        <form class="contact-form" id="js-contact-form" novalidate>
+          <div class="form-group">
+            <label for="form-name">お名前 <span class="form-group__required">*</span></label>
+            <input type="text" id="form-name" name="name" required autocomplete="name" placeholder="山田 太郎" data-error-empty="お名前を入力してください">
+            <p class="form-group__error" aria-live="polite"></p>
+          </div>
+          <div class="form-group">
+            <label for="form-email">メールアドレス <span class="form-group__required">*</span></label>
+            <input type="email" id="form-email" name="email" required autocomplete="email" placeholder="example@mail.com" data-error-empty="メールアドレスを入力してください" data-error-format="正しいメールアドレスを入力してください">
+            <p class="form-group__error" aria-live="polite"></p>
+          </div>
+          <div class="form-group">
+            <label for="form-subject">件名</label>
+            <input type="text" id="form-subject" name="subject" placeholder="お仕事のご依頼について">
+          </div>
+          <div class="form-group">
+            <label for="form-message">メッセージ <span class="form-group__required">*</span></label>
+            <textarea id="form-message" name="message" rows="6" required placeholder="お気軽にメッセージをどうぞ" data-error-empty="メッセージを入力してください"></textarea>
+            <p class="form-group__error" aria-live="polite"></p>
+          </div>
+          <button type="submit" class="btn btn--primary btn--submit">
+            <span>送信する</span>
+            <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <p class="contact-form__success" id="js-form-success" role="alert" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Works モーダル（main の外に配置し、オーバーレイとしてのセマンティクスを明確化） -->
+  <div class="modal" id="js-modal" aria-hidden="true">
+    <div class="modal__overlay js-modal-close"></div>
+    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="js-modal-title" tabindex="-1">
+      <button class="modal__close js-modal-close" type="button" aria-label="閉じる">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="modal__body">
+        <h3 class="modal__title" id="js-modal-title"></h3>
+        <div class="modal__tags" id="js-modal-tags"></div>
+        <dl class="modal__info">
+          <div class="modal__info-item">
+            <dt class="modal__info-label">担当範囲</dt>
+            <dd class="modal__info-value" id="js-modal-role"></dd>
+          </div>
+          <div class="modal__info-item">
+            <dt class="modal__info-label">制作期間</dt>
+            <dd class="modal__info-value" id="js-modal-period"></dd>
+          </div>
+        </dl>
+        <div class="modal__point">
+          <h4 class="modal__point-heading">工夫したポイント</h4>
+          <p id="js-modal-point"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ページトップボタン -->
+  <button class="page-top" id="js-page-top" type="button" aria-label="ページの先頭に戻る">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>
+  </button>
+
+  <!-- フッター -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__logo">YF<span class="u-accent">.</span></p>
+        <ul class="footer__sns" aria-label="SNSリンク">
+          <li>
+            <a href="https://github.com/" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            </a>
+          </li>
+          <li>
+            <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+          </li>
+        </ul>
+        <p class="footer__copy">&copy; 2026 Yohei Furukawa. All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
