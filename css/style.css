@@ -685,6 +685,23 @@ button {
   letter-spacing: 0.1em;
 }
 
+.work-card__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s var(--ease-out);
+}
+
+.work-card:hover .work-card__thumb {
+  transform: scale(1.05);
+}
+
+.work-card__link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .work-card__overlay {
   position: absolute;
   inset: 0;
