@@ -106,20 +106,33 @@ $(function () {
 
   // フォールバックタイマー: 5秒後にまだ opacity: 0 の要素があれば強制表示
   setTimeout(function () {
-    var hiddenElements = document.querySelectorAll(
-      '.hero__greeting, .hero__name-line, .hero__description, ' +
-      '.hero__cta, .hero__scroll-indicator, .section__number, ' +
-      '.about__text, .about__skills, .about__info-item, ' +
-      '.skill-card, .work-card, .contact__lead, .form-group, ' +
-      '.timeline__item, .works-filter, .split-char'
-    );
-    hiddenElements.forEach(function (el) {
-      var computedOpacity = parseFloat(getComputedStyle(el).opacity);
-      if (computedOpacity === 0) {
-        gsap.set(el, { opacity: 1, y: 0, x: 0 });
-      }
+    var selectors = [
+      '.hero__greeting', '.hero__name-line', '.hero__title',
+      '.hero__description', '.hero__cta', '.hero__scroll-indicator',
+      '.section__number', '.about__text', '.about__skills',
+      '.about__info-item', '.skill-card', '.work-card',
+      '.contact__lead', '.form-group', '.timeline__item',
+      '.works-filter', '.split-char'
+    ];
+    
+    var elementsToShow = [];
+    
+    // 最初にすべての要素をチェック（layout recalculation を最小化）
+    selectors.forEach(function (selector) {
+      var elements = document.querySelectorAll(selector);
+      elements.forEach(function (el) {
+        var computedOpacity = parseFloat(getComputedStyle(el).opacity);
+        if (computedOpacity === 0) {
+          elementsToShow.push(el);
+        }
+      });
     });
-    ScrollTrigger.refresh(true);
+    
+    // バッチで opacity を設定
+    if (elementsToShow.length > 0) {
+      gsap.set(elementsToShow, { opacity: 1, y: 0, x: 0 });
+      ScrollTrigger.refresh(true);
+    }
   }, 5000);
 
   // =============================================
