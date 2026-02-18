@@ -43,28 +43,28 @@ $(function () {
   }
 
   // DOM キャッシュ
-  const $body       = $('body');
-  const $header     = $('#js-header');
-  const $hamburger  = $('#js-hamburger');
-  const $mobileMenu = $('#js-mobile-menu');
-  const $pageTop    = $('#js-page-top');
-  const $navLinks   = $('.js-nav-link');
-  const $modal      = $('#js-modal');
+  var $body       = $('body');
+  var $header     = $('#js-header');
+  var $hamburger  = $('#js-hamburger');
+  var $mobileMenu = $('#js-mobile-menu');
+  var $pageTop    = $('#js-page-top');
+  var $navLinks   = $('.js-nav-link');
+  var $modal      = $('#js-modal');
 
   // 定数
-  const HEADER_SCROLL_THRESHOLD   = 80;
-  const PAGE_TOP_SCROLL_THRESHOLD = 400;
+  var HEADER_SCROLL_THRESHOLD   = 80;
+  var PAGE_TOP_SCROLL_THRESHOLD = 400;
 
   // CSS カスタムプロパティからヘッダー高さを取得（フォールバック: 80px）
-  const HEADER_OFFSET = parseInt(
+  var HEADER_OFFSET = parseInt(
     getComputedStyle(document.documentElement).getPropertyValue('--header-height'), 10
   ) || 80;
 
   // =============================================
   // 2. ローディング
   // =============================================
-  const loaderTl = gsap.timeline({
-    onComplete() {
+  var loaderTl = gsap.timeline({
+    onComplete: function () {
       initHeroAnimation();
       initParticles();
       initTextSplit();
@@ -96,11 +96,17 @@ $(function () {
     })
     .set('#js-loader', { display: 'none' });
 
+  // lazy 画像の読み込み完了後に ScrollTrigger の位置を再計算
+  // loading="lazy" の画像はローダー完了時点でまだ読み込まれていない可能性がある
+  window.addEventListener('load', function () {
+    ScrollTrigger.refresh();
+  });
+
   // =============================================
   // 3. ヒーローアニメーション + タイピング
   // =============================================
   function initHeroAnimation() {
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
     tl.from('.hero__name-line', {
         yPercent: 120,
@@ -135,11 +141,11 @@ $(function () {
    * 打ち終わったらカーソルの点滅を止め、一定時間後にカーソルをフェードアウトする
    */
   function startTyping() {
-    const TYPING_TEXT        = 'Frontend Coder';
-    const TYPING_INTERVAL_MS = 80;
-    const CURSOR_LINGER_MS   = 3000;
-    const $typingText = $('.hero__typing-text');
-    const $cursor     = $('.hero__typing-cursor');
+    var TYPING_TEXT        = 'Frontend Coder';
+    var TYPING_INTERVAL_MS = 80;
+    var CURSOR_LINGER_MS   = 3000;
+    var $typingText = $('.hero__typing-text');
+    var $cursor     = $('.hero__typing-cursor');
 
     if (prefersReducedMotion) {
       $typingText.text(TYPING_TEXT);
@@ -147,8 +153,8 @@ $(function () {
       return;
     }
 
-    let charIndex = 0;
-    const timer = setInterval(function () {
+    var charIndex = 0;
+    var timer = setInterval(function () {
       charIndex++;
       $typingText.text(TYPING_TEXT.substring(0, charIndex));
       if (charIndex >= TYPING_TEXT.length) {
@@ -164,22 +170,22 @@ $(function () {
   // 4. パーティクル背景
   // =============================================
   function initParticles() {
-    const canvas = document.getElementById('js-particles');
+    var canvas = document.getElementById('js-particles');
     if (!canvas || prefersReducedMotion) return;
 
-    const ctx      = canvas.getContext('2d');
+    var ctx      = canvas.getContext('2d');
     if (!ctx) return;
 
-    const heroEl   = canvas.parentElement;
-    let particles  = [];
-    let animFrameId = null;
+    var heroEl   = canvas.parentElement;
+    var particles  = [];
+    var animFrameId = null;
 
     // モバイル判定
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
                   || (navigator.maxTouchPoints > 1 && window.innerWidth <= 900);
 
     // --- 設定定数 ---
-    const CONFIG = {
+    var CONFIG = {
       count:        isMobile ? 50 : 200,     // パーティクル数（モバイルは軽量化）
       connectDist:  isMobile ? 80 : 120,     // パーティクル間の接続距離
       maxSpeed:     isMobile ? 0.8 : 1.2,    // 基本最大速度
@@ -203,17 +209,17 @@ $(function () {
     };
 
     // アクセントカラー（RGB）
-    const ACCENT_RGB = '0,212,255';
+    var ACCENT_RGB = '0,212,255';
 
     // マウス座標（CSS ピクセル座標、heroEl 相対）
-    const mouse = { x: -9999, y: -9999, active: false };
+    var mouse = { x: -9999, y: -9999, active: false };
 
     // --- ユーティリティ ---
 
     /** 2 点間の距離を算出 */
     function distance(ax, ay, bx, by) {
-      const dx = ax - bx;
-      const dy = ay - by;
+      var dx = ax - bx;
+      var dy = ay - by;
       return Math.sqrt(dx * dx + dy * dy);
     }
 
@@ -225,7 +231,7 @@ $(function () {
     /** 2 点間に接続線を描画する（距離がしきい値以内の場合のみ） */
     function drawLine(x1, y1, x2, y2, dist, maxDist, baseAlpha, width) {
       if (dist >= maxDist) return;
-      const alpha = (1 - dist / maxDist) * baseAlpha;
+      var alpha = (1 - dist / maxDist) * baseAlpha;
       ctx.strokeStyle = rgba(alpha);
       ctx.lineWidth   = width;
       ctx.beginPath();
@@ -238,9 +244,9 @@ $(function () {
 
     /** キャンバスサイズを親要素に合わせる（Retina 対応） */
     function resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2); // dpr上限2で省メモリ化
-      const w   = heroEl.offsetWidth;
-      const h   = heroEl.offsetHeight;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2); // dpr上限2で省メモリ化
+      var w   = heroEl.offsetWidth;
+      var h   = heroEl.offsetHeight;
 
       if (w === 0 || h === 0) return; // レイアウト未確定なら何もしない
 
@@ -253,13 +259,13 @@ $(function () {
 
     /** パーティクルを生成（CSS ピクセル座標で管理） */
     function createParticles() {
-      const w = heroEl.offsetWidth;
-      const h = heroEl.offsetHeight;
+      var w = heroEl.offsetWidth;
+      var h = heroEl.offsetHeight;
       if (w === 0 || h === 0) return;
 
       particles = [];
-      for (let i = 0; i < CONFIG.count; i++) {
-        const r = isMobile
+      for (var i = 0; i < CONFIG.count; i++) {
+        var r = isMobile
           ? Math.random() * 2 + 1        // モバイル: 1〜3px（視認性向上）
           : Math.random() * 1.5 + 0.5;   // PC: 0.5〜2px
         particles.push({
@@ -275,11 +281,11 @@ $(function () {
 
     /** パーティクル同士の接続線を描画 */
     function drawParticleLinks() {
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const a = particles[i];
-          const b = particles[j];
-          const dist = distance(a.x, a.y, b.x, b.y);
+      for (var i = 0; i < particles.length; i++) {
+        for (var j = i + 1; j < particles.length; j++) {
+          var a = particles[i];
+          var b = particles[j];
+          var dist = distance(a.x, a.y, b.x, b.y);
           drawLine(a.x, a.y, b.x, b.y, dist, CONFIG.connectDist, CONFIG.lineAlpha, 0.5);
         }
       }
@@ -288,10 +294,10 @@ $(function () {
     /** マウスとパーティクル間の接続線を描画 */
     function drawMouseLinks() {
       if (!mouse.active) return;
-      const mc = CONFIG.mouse;
-      for (let i = 0; i < particles.length; i++) {
-        const p    = particles[i];
-        const dist = distance(p.x, p.y, mouse.x, mouse.y);
+      var mc = CONFIG.mouse;
+      for (var i = 0; i < particles.length; i++) {
+        var p    = particles[i];
+        var dist = distance(p.x, p.y, mouse.x, mouse.y);
         drawLine(mouse.x, mouse.y, p.x, p.y, dist, mc.lineDist, mc.lineAlpha, mc.lineWidth);
       }
     }
@@ -303,13 +309,13 @@ $(function () {
      * @return {boolean} インタラクションが発生したか
      */
     function applyMouseInteraction(p, dist) {
-      const mc = CONFIG.mouse;
+      var mc = CONFIG.mouse;
       if (dist >= mc.radius || dist <= 0) return false;
 
-      const ratio = 1 - dist / mc.radius;
+      var ratio = 1 - dist / mc.radius;
 
       // 押し出し
-      const force = ratio * mc.force;
+      var force = ratio * mc.force;
       p.vx += ((p.x - mouse.x) / dist) * force;
       p.vy += ((p.y - mouse.y) / dist) * force;
 
@@ -321,13 +327,13 @@ $(function () {
 
     /** 各パーティクルの描画・物理更新 */
     function updateAndDrawParticles(w, h) {
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
 
         // マウスインタラクション or デフォルト描画色
-        let interacted = false;
+        var interacted = false;
         if (mouse.active) {
-          const dist = distance(p.x, p.y, mouse.x, mouse.y);
+          var dist = distance(p.x, p.y, mouse.x, mouse.y);
           interacted = applyMouseInteraction(p, dist);
         }
         if (!interacted) {
@@ -345,7 +351,7 @@ $(function () {
         p.vy *= CONFIG.friction;
 
         // 停滞防止（最低速度を維持）
-        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
         if (speed < CONFIG.maxSpeed * CONFIG.driftThresh) {
           p.vx += (Math.random() - 0.5) * CONFIG.driftForce;
           p.vy += (Math.random() - 0.5) * CONFIG.driftForce;
@@ -365,8 +371,8 @@ $(function () {
 
     /** メイン描画ループ */
     function draw() {
-      const w = heroEl.offsetWidth;
-      const h = heroEl.offsetHeight;
+      var w = heroEl.offsetWidth;
+      var h = heroEl.offsetHeight;
 
       ctx.clearRect(0, 0, w, h);
       drawParticleLinks();
@@ -388,7 +394,7 @@ $(function () {
 
     // マウスイベント（キャンバスは pointer-events:none のため親要素で監視）
     heroEl.addEventListener('mousemove', function (e) {
-      const rect = heroEl.getBoundingClientRect();
+      var rect = heroEl.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
       mouse.active = true;
@@ -401,7 +407,7 @@ $(function () {
     // タッチイベント（スマホ対応）
     heroEl.addEventListener('touchmove', function (e) {
       if (e.touches.length > 0) {
-        const rect = heroEl.getBoundingClientRect();
+        var rect = heroEl.getBoundingClientRect();
         mouse.x = e.touches[0].clientX - rect.left;
         mouse.y = e.touches[0].clientY - rect.top;
         mouse.active = true;
@@ -413,7 +419,7 @@ $(function () {
     });
 
     // リサイズ時にデバウンスして再構築
-    let resizeTimer;
+    var resizeTimer;
     window.addEventListener('resize', function () {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(rebuild, 200);
@@ -447,21 +453,21 @@ $(function () {
    * @return {string} エスケープ済み文字列
    */
   function escapeHtml(str) {
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
   }
 
   function initTextSplit() {
     document.querySelectorAll('.js-split-text').forEach(function (el) {
-      const nodes = Array.from(el.childNodes);
-      let html = '';
+      var nodes = Array.from(el.childNodes);
+      var html = '';
 
       nodes.forEach(function (node) {
         if (node.nodeType === Node.TEXT_NODE) {
           // テキストノード → 1 文字ずつ span で囲む
-          const text = node.textContent;
-          for (let i = 0; i < text.length; i++) {
+          var text = node.textContent;
+          for (var i = 0; i < text.length; i++) {
             if (text[i] === ' ') {
               html += ' ';
             } else {
@@ -470,7 +476,7 @@ $(function () {
           }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           // 既存の要素ノード（<span class="u-accent"> 等）を保持
-          const clone = node.cloneNode(true);
+          var clone = node.cloneNode(true);
           clone.classList.add('split-char');
           html += clone.outerHTML;
         }
@@ -478,14 +484,14 @@ $(function () {
 
       el.innerHTML = html;
 
-      const chars = el.querySelectorAll('.split-char');
+      var chars = el.querySelectorAll('.split-char');
       gsap.set(chars, { opacity: 0, y: 20 });
 
       ScrollTrigger.create({
         trigger: el,
         start: 'top 85%',
         once: true,
-        onEnter() {
+        onEnter: function () {
           gsap.to(chars, {
             opacity: 1,
             y: 0,
@@ -544,13 +550,17 @@ $(function () {
      * @param {Object} [vars]   - fadeIn オプション（staggerDelay で間隔指定、デフォルト 0.1s）
      */
     function staggerFadeIn(selector, vars) {
-      const { staggerDelay = 0.1, ...fadeInVars } = vars || {};
+      var opts = vars || {};
+      var staggerDelay = opts.staggerDelay !== undefined ? opts.staggerDelay : 0.1;
 
       gsap.utils.toArray(selector).forEach(function (el, i) {
-        fadeIn(el, el, {
-          delay: i * staggerDelay,
-          ...fadeInVars
-        });
+        var fadeInVars = { delay: i * staggerDelay };
+        for (var key in opts) {
+          if (opts.hasOwnProperty(key) && key !== 'staggerDelay') {
+            fadeInVars[key] = opts[key];
+          }
+        }
+        fadeIn(el, el, fadeInVars);
       });
     }
 
@@ -580,7 +590,7 @@ $(function () {
   // =============================================
 
   // スクロールイベントを requestAnimationFrame でスロットリング
-  let scrollTicking = false;
+  var scrollTicking = false;
   window.addEventListener('scroll', function () {
     if (!scrollTicking) {
       window.requestAnimationFrame(function () {
@@ -592,7 +602,7 @@ $(function () {
   }, { passive: true });
 
   function handleScroll() {
-    const scrollY = window.scrollY;
+    var scrollY = window.scrollY;
     $header.toggleClass('is-scrolled', scrollY > HEADER_SCROLL_THRESHOLD);
     $pageTop.toggleClass('is-visible', scrollY > PAGE_TOP_SCROLL_THRESHOLD);
   }
@@ -611,15 +621,15 @@ $(function () {
   });
 
   // ナビゲーション アクティブ（スクロールスパイ）
-  const NAV_SECTIONS = ['#about', '#works', '#contact'];
+  var NAV_SECTIONS = ['#about', '#works', '#contact'];
 
   NAV_SECTIONS.forEach(function (id) {
     ScrollTrigger.create({
       trigger: id,
       start: 'top center',
       end: 'bottom center',
-      onEnter()     { setActiveNav(id); },
-      onEnterBack() { setActiveNav(id); }
+      onEnter: function ()     { setActiveNav(id); },
+      onEnterBack: function () { setActiveNav(id); }
     });
   });
 
@@ -637,7 +647,7 @@ $(function () {
    * 複数のコンポーネント（メニュー・モーダル）が同時にロックを要求しても
    * 全てが解除されるまで body の overflow を復元しない
    */
-  let scrollLockCount = 0;
+  var scrollLockCount = 0;
 
   function lockScroll() {
     scrollLockCount++;
@@ -691,11 +701,11 @@ $(function () {
   // 9. スムーススクロール
   // =============================================
   $(document).on('click', 'a[href^="#"]', function (e) {
-    const href = $(this).attr('href');
+    var href = $(this).attr('href');
     if (href === '#') return;
 
     e.preventDefault();
-    const $target = $(href);
+    var $target = $(href);
     if (!$target.length) return;
 
     gsap.to(window, {
@@ -708,12 +718,12 @@ $(function () {
   // =============================================
   // 10. Works フィルター
   // =============================================
-  const $filterBtns = $('#js-works-filter .works-filter__btn');
-  const $workCards  = $('.js-work-card');
+  var $filterBtns = $('#js-works-filter .works-filter__btn');
+  var $workCards  = $('.js-work-card');
 
   $filterBtns.on('click', function () {
-    const $btn   = $(this);
-    const filter = $btn.data('filter');
+    var $btn   = $(this);
+    var filter = $btn.data('filter');
 
     // 同じボタンの連打を無視
     if ($btn.hasClass('is-active')) return;
@@ -723,9 +733,9 @@ $(function () {
     $btn.addClass('is-active');
 
     $workCards.each(function () {
-      const $card = $(this);
-      const tags  = String($card.data('tags')).split(',');
-      const shouldShow = (filter === 'all') || tags.indexOf(filter) !== -1;
+      var $card = $(this);
+      var tags  = String($card.data('tags')).split(',');
+      var shouldShow = (filter === 'all') || tags.indexOf(filter) !== -1;
 
       // 進行中のアニメーションを即座に停止
       gsap.killTweensOf($card[0]);
@@ -747,7 +757,7 @@ $(function () {
           scale: 0.9,
           duration: dur(0.3),
           ease: 'power2.in',
-          onComplete() {
+          onComplete: function () {
             $card.addClass('is-hidden');
           }
         });
@@ -758,8 +768,8 @@ $(function () {
   // =============================================
   // 11. Works モーダル
   // =============================================
-  let $lastDetailTrigger = null;
-  const $modalContainer  = $modal.find('.modal__container');
+  var $lastDetailTrigger = null;
+  var $modalContainer  = $modal.find('.modal__container');
 
   /**
    * モーダルを開く
@@ -773,8 +783,8 @@ $(function () {
     $('#js-modal-point').text($card.data('detail-point'));
 
     // タグ生成（XSS 安全: jQuery .text() で生成）
-    const tags = String($card.data('tags')).split(',');
-    const $tagsWrap = $('#js-modal-tags').empty();
+    var tags = String($card.data('tags')).split(',');
+    var $tagsWrap = $('#js-modal-tags').empty();
     tags.forEach(function (t) {
       $('<span>', { 'class': 'tag', text: t.trim() }).appendTo($tagsWrap);
     });
@@ -803,7 +813,7 @@ $(function () {
   // Detail ボタンクリック
   $(document).on('click', '.js-work-detail', function () {
     $lastDetailTrigger = $(this);
-    const $card = $(this).closest('.js-work-card');
+    var $card = $(this).closest('.js-work-card');
     openModal($card);
   });
 
@@ -818,11 +828,11 @@ $(function () {
   $modal.on('keydown', function (e) {
     if (e.key !== 'Tab') return;
 
-    const $focusable = $modal.find('a[href], button:not([disabled]), [tabindex="-1"]');
+    var $focusable = $modal.find('a[href], button:not([disabled]), [tabindex="-1"]');
     if (!$focusable.length) return;
 
-    const $first = $focusable.first();
-    const $last  = $focusable.last();
+    var $first = $focusable.first();
+    var $last  = $focusable.last();
 
     if (e.shiftKey) {
       // Shift+Tab: 最初の要素にいたら最後へ
@@ -842,8 +852,8 @@ $(function () {
   // =============================================
   // 12. フォームバリデーション
   // =============================================
-  const $contactForm = $('#js-contact-form');
-  const emailRegex   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var $contactForm = $('#js-contact-form');
+  var emailRegex   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   /**
    * フィールド単体バリデーション
@@ -851,9 +861,9 @@ $(function () {
    * @return {boolean} バリデーション通過なら true
    */
   function validateField($field) {
-    const value      = $field.val().trim();
-    const isRequired = $field.prop('required');
-    const $error     = $field.siblings('.form-group__error');
+    var value      = $field.val().trim();
+    var isRequired = $field.prop('required');
+    var $error     = $field.siblings('.form-group__error');
 
     // 必須チェック（空欄）
     if (isRequired && value === '') {
@@ -877,7 +887,7 @@ $(function () {
 
   // リアルタイムバリデーション（エラー表示中のフィールドのみ再検証）
   $contactForm.on('input', 'input, textarea', function () {
-    const $el = $(this);
+    var $el = $(this);
     if ($el.hasClass('is-error')) {
       validateField($el);
     }
@@ -892,7 +902,7 @@ $(function () {
   $contactForm.on('submit', function (e) {
     e.preventDefault();
 
-    let isValid = true;
+    var isValid = true;
     $(this).find('input[required], textarea[required], input[type="email"]').each(function () {
       if (!validateField($(this))) {
         isValid = false;
@@ -904,8 +914,8 @@ $(function () {
       return;
     }
 
-    const $btn = $(this).find('.btn--submit');
-    const originalText = $btn.find('span').text();
+    var $btn = $(this).find('.btn--submit');
+    var originalText = $btn.find('span').text();
 
     $btn.prop('disabled', true);
     $btn.find('span').text('送信中...');
@@ -931,7 +941,7 @@ $(function () {
   // 13. カスタムカーソル（PC ホバー環境のみ）
   // =============================================
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-    const $cursor = $('<div class="custom-cursor" aria-hidden="true"></div>');
+    var $cursor = $('<div class="custom-cursor" aria-hidden="true"></div>');
     $body.append($cursor);
 
     document.addEventListener('mousemove', function (e) {
