@@ -40,22 +40,30 @@ $(function () {
   // 2. ローディング
   // =============================================
   
-  // アニメーション対象要素の初期状態を設定（CSS から削除した opacity: 0 を JS で管理）
-  gsap.set([
+  // アニメーション対象要素のセレクタリスト（初期設定とフォールバックで共用）
+  var ANIMATION_TARGETS = [
     '.hero__greeting', '.hero__name-line', '.hero__title',
     '.hero__description', '.hero__cta', '.hero__scroll-indicator',
     '.section__number', '.about__text', '.about__skills',
     '.about__info-item', '.skill-card', '.work-card',
     '.contact__lead', '.form-group', '.timeline__item',
     '.works-filter'
-  ], { opacity: 0 });
+  ];
+
+  // アニメーション対象要素の初期状態を設定（CSS から削除した opacity: 0 を JS で管理）
+  gsap.set(ANIMATION_TARGETS, { opacity: 0 });
 
   // ローダー完了とページロード完了の両方を待ってからアニメーション初期化
   var isLoaderDone = false;
   var isPageLoaded = false;
+  var isAnimationsInitialized = false;
 
   function tryInitAnimations() {
+    // 二重初期化を防ぐガード
+    if (isAnimationsInitialized) return;
     if (!isLoaderDone || !isPageLoaded) return;
+    
+    isAnimationsInitialized = true;
     
     initHeroAnimation();
     initParticles();
@@ -65,6 +73,7 @@ $(function () {
     // iOS Safari 用に refresh を複数回実行して確実にする
     ScrollTrigger.refresh(true);
 
+    // 2フレーム待機: 1フレーム目でレイアウト計算、2フレーム目で正確な位置を取得
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         ScrollTrigger.refresh(true);
@@ -106,19 +115,12 @@ $(function () {
 
   // フォールバックタイマー: 5秒後にまだ opacity: 0 の要素があれば強制表示
   setTimeout(function () {
-    var selectors = [
-      '.hero__greeting', '.hero__name-line', '.hero__title',
-      '.hero__description', '.hero__cta', '.hero__scroll-indicator',
-      '.section__number', '.about__text', '.about__skills',
-      '.about__info-item', '.skill-card', '.work-card',
-      '.contact__lead', '.form-group', '.timeline__item',
-      '.works-filter', '.split-char'
-    ];
-    
+    // ANIMATION_TARGETS に split-char を追加（initTextSplit で動的に生成される）
+    var fallbackSelectors = ANIMATION_TARGETS.concat(['.split-char']);
     var elementsToShow = [];
     
     // 最初にすべての要素をチェック（layout recalculation を最小化）
-    selectors.forEach(function (selector) {
+    fallbackSelectors.forEach(function (selector) {
       var elements = document.querySelectorAll(selector);
       elements.forEach(function (el) {
         var computedOpacity = parseFloat(getComputedStyle(el).opacity);
