@@ -170,6 +170,11 @@ $(function () {
   // 4. パーティクル背景
   // =============================================
   function initParticles() {
+    // モバイル判定 — スマホではパーティクルを描画しない
+    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                  || (navigator.maxTouchPoints > 1 && window.innerWidth <= 900);
+    if (isMobile) return;
+
     var canvas = document.getElementById('js-particles');
     if (!canvas || prefersReducedMotion) return;
 
@@ -179,10 +184,6 @@ $(function () {
     var heroEl   = canvas.parentElement;
     var particles  = [];
     var animFrameId = null;
-
-    // モバイル判定
-    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-                  || (navigator.maxTouchPoints > 1 && window.innerWidth <= 900);
 
     // --- 設定定数 ---
     var CONFIG = {
