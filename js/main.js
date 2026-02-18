@@ -468,7 +468,7 @@ $(function () {
 
       ScrollTrigger.create({
         trigger: el,
-        start: 'top 90%',
+        start: 'top 85%',
         once: true,
         onEnter() {
           gsap.to(chars, {
@@ -494,27 +494,20 @@ $(function () {
      * @param {Object}  [vars]           - tween プロパティ（start / end は scrollTrigger へ振り分け）
      */
     function fadeIn(targets, triggerEl, vars) {
-      const { start, end, staggerDelay, x, y, ...tweenVars } = vars || {};
+      const { start, end, staggerDelay, ...tweenVars } = vars || {};
 
-      // 初期状態を明示的にセット
-      gsap.set(targets, {
-        y: y !== undefined ? y : 40,
-        x: x || 0,
-        opacity: 0
-      });
-
-      gsap.to(targets, {
+      gsap.from(targets, {
         scrollTrigger: {
           trigger: triggerEl || targets,
-          start: start || 'top 90%',
+          start: start || 'top 85%',
           end: end,
           toggleActions: 'play none none none'
         },
-        y: 0,
-        x: 0,
-        opacity: 1,
+        y: 40,
+        opacity: 0,
         duration: DURATION ?? 0.8,
         ease: 'power3.out',
+        immediateRender: false,
         ...tweenVars
       });
     }
@@ -539,8 +532,8 @@ $(function () {
     staggerFadeIn('.section__number', { staggerDelay: 0 });
 
     // About
-    fadeIn('.about__text', '.about__text', { x: -40, y: 0, start: 'top 90%' });
-    fadeIn('.about__skills', '.about__skills', { x: 40, y: 0, delay: 0.2, start: 'top 90%' });
+    fadeIn('.about__text', '.about__text', { x: -40, y: 0, start: 'top 80%' });
+    fadeIn('.about__skills', '.about__skills', { x: 40, y: 0, delay: 0.2, start: 'top 80%' });
     staggerFadeIn('.skill-card', { y: 20, duration: DURATION ?? 0.5, staggerDelay: 0.08 });
     staggerFadeIn('.about__info-item', { x: -20, y: 0, duration: DURATION ?? 0.5 });
 
