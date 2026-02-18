@@ -436,7 +436,7 @@ $(function () {
      * 問題: ローダー完了時に既にビューポート内の要素は onEnter が発火せず
      *       永久に opacity:0 のまま（特にスマホで画面が小さく要素が見えている場合）
      *
-     * 新: gsap.from() + scrollTrigger オプションを使用
+     * 新: gsap.fromTo() + scrollTrigger オプションを使用
      *     → GSAP が自動的にビューポート内の要素を即座にアニメーション開始してくれる
      *     → toggleActions で "play none none none" を指定し 1 回だけ実行
      */
@@ -448,19 +448,26 @@ $(function () {
       var delay    = (vars && vars.delay) || 0;
       var ease     = (vars && vars.ease) || 'power3.out';
 
-      gsap.from(targets, {
-        opacity: 0,
-        y: y,
-        x: x,
-        duration: duration,
-        delay: delay,
-        ease: ease,
-        scrollTrigger: {
-          trigger: triggerEl || targets,
-          start: start,
-          toggleActions: 'play none none none'
+      gsap.fromTo(targets,
+        {
+          opacity: 0,
+          y: y,
+          x: x
+        },
+        {
+          opacity: 1,
+          y: 0,
+          x: 0,
+          duration: duration,
+          delay: delay,
+          ease: ease,
+          scrollTrigger: {
+            trigger: triggerEl || targets,
+            start: start,
+            toggleActions: 'play none none none'
+          }
         }
-      });
+      );
     }
 
     /**
