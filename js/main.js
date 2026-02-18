@@ -193,10 +193,9 @@ $(function () {
   /* ================================================
      7. Text split animation
      ================================================ */
+  var HTML_ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
   function escapeHtml(ch) {
-    var d = document.createElement('div');
-    d.appendChild(document.createTextNode(ch));
-    return d.innerHTML;
+    return HTML_ESCAPE_MAP[ch] || ch;
   }
 
   function initTextSplit() {
@@ -342,12 +341,12 @@ $(function () {
     if (scrollTicking) return;
     scrollTicking = true;
     requestAnimationFrame(function () {
-      var y = window.pageYOffset || 0;
+      var y = window.scrollY || window.pageYOffset || 0;
       $header.toggleClass('is-scrolled', y > HEADER_SCROLL_THRESHOLD);
       $pageTop.toggleClass('is-visible', y > PAGE_TOP_SCROLL_THRESHOLD);
       scrollTicking = false;
     });
-  }, false);
+  }, { passive: true });
 
   $pageTop.on('click', function () {
     gsap.to(window, {
@@ -439,20 +438,22 @@ $(function () {
     $btn.addClass('is-active');
 
     $workCards.each(function () {
-      var $card = $(this);
-      var tags  = String($card.data('tags')).split(',');
-      var show  = filter === 'all' || tags.indexOf(filter) !== -1;
+      var $card    = $(this);
+      var tags     = String($card.data('tags')).split(',');
+      var show     = filter === 'all' || tags.indexOf(filter) !== -1;
+      var isHidden = $card.hasClass('is-hidden');
 
       gsap.killTweensOf($card[0]);
 
       if (show) {
+        if (!isHidden) return;          // 既に表示中なら何もしない
         $card.removeClass('is-hidden');
         gsap.to($card[0], {
           opacity: 1, scale: 1,
           duration: dur(0.4), ease: 'power2.out'
         });
       } else {
-        if ($card.hasClass('is-hidden')) return;
+        if (isHidden) return;           // 既に非表示なら何もしない
         gsap.to($card[0], {
           opacity: 0, scale: 0.9,
           duration: dur(0.3), ease: 'power2.in',

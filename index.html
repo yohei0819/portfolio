@@ -25,6 +25,13 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- Scripts (defer: HTMLパース中に並行ダウンロード、DOMパース完了後に順序実行) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js" defer></script>
+  <script src="js/main.js" defer></script>
 </head>
 <body>
 
@@ -231,6 +238,7 @@
                 <p class="work-card__desc">物件検索・エリアランキング・FAQ など多彩な機能を備えた賃貸物件情報サイト。</p>
               </div>
             </a>
+            <button class="work-card__detail js-work-detail" type="button">詳細を見る</button>
           </article>
 
           <article class="work-card js-work-card" data-tags="HTML,CSS,JavaScript,GSAP"
@@ -252,6 +260,7 @@
                 <p class="work-card__desc">GSAP アニメーションで荘厳な世界観を表現した博物館サイト。</p>
               </div>
             </a>
+            <button class="work-card__detail js-work-detail" type="button">詳細を見る</button>
           </article>
 
           <article class="work-card js-work-card" data-tags="HTML,CSS,JavaScript,GSAP"
@@ -273,6 +282,7 @@
                 <p class="work-card__desc">視差スクロールとカウントアップ演出で上質感を伝えるレジデンスサイト。</p>
               </div>
             </a>
+            <button class="work-card__detail js-work-detail" type="button">詳細を見る</button>
           </article>
 
         </div>
@@ -373,11 +383,5 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
-  <script src="js/main.js"></script>
 </body>
 </html>
