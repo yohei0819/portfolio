@@ -507,7 +507,6 @@ $(function () {
         opacity: 0,
         duration: DURATION ?? 0.8,
         ease: 'power3.out',
-        immediateRender: false,
         ...tweenVars
       });
     }
