@@ -58,6 +58,12 @@ $(function () {
       initParticles();
       initTextSplit();
       initScrollAnimations();
+
+      // モバイルブラウザではローダー除去後にレイアウトが変わるため
+      // ScrollTrigger の位置計算を再実行する
+      requestAnimationFrame(function () {
+        ScrollTrigger.refresh();
+      });
     }
   });
 
@@ -470,7 +476,7 @@ $(function () {
 
       ScrollTrigger.create({
         trigger: el,
-        start: 'top 85%',
+        start: 'top 90%',
         once: true,
         onEnter() {
           gsap.to(chars, {
@@ -498,18 +504,27 @@ $(function () {
     function fadeIn(targets, triggerEl, vars) {
       const { start, end, staggerDelay, ...tweenVars } = vars || {};
 
-      gsap.from(targets, {
+      // 初期状態を明示的にセットし、gsap.from のちらつきを防止
+      gsap.set(targets, {
+        y: tweenVars.y !== undefined ? tweenVars.y : 40,
+        x: tweenVars.x || 0,
+        opacity: 0
+      });
+
+      gsap.to(targets, {
         scrollTrigger: {
           trigger: triggerEl || targets,
-          start: start || 'top 85%',
+          start: start || 'top 90%',
           end: end,
           toggleActions: 'play none none none'
         },
-        y: 40,
-        opacity: 0,
+        y: 0,
+        x: 0,
+        opacity: 1,
         duration: DURATION ?? 0.8,
         ease: 'power3.out',
-        ...tweenVars
+        ...tweenVars,
+        // tweenVars の y/x は初期セット用なので上書き
       });
     }
 
@@ -533,8 +548,8 @@ $(function () {
     staggerFadeIn('.section__number', { staggerDelay: 0 });
 
     // About
-    fadeIn('.about__text', '.about__text', { x: -40, y: 0, start: 'top 80%' });
-    fadeIn('.about__skills', '.about__skills', { x: 40, y: 0, delay: 0.2, start: 'top 80%' });
+    fadeIn('.about__text', '.about__text', { x: -40, y: 0, start: 'top 90%' });
+    fadeIn('.about__skills', '.about__skills', { x: 40, y: 0, delay: 0.2, start: 'top 90%' });
     staggerFadeIn('.skill-card', { y: 20, duration: DURATION ?? 0.5, staggerDelay: 0.08 });
     staggerFadeIn('.about__info-item', { x: -20, y: 0, duration: DURATION ?? 0.5 });
 
@@ -570,6 +585,18 @@ $(function () {
     const scrollY = window.scrollY;
     $header.toggleClass('is-scrolled', scrollY > HEADER_SCROLL_THRESHOLD);
     $pageTop.toggleClass('is-visible', scrollY > PAGE_TOP_SCROLL_THRESHOLD);
+  }
+
+  // モバイルアドレスバーの表示/非表示でビューポートサイズが変わった際に
+  // ScrollTrigger の位置計算を更新する
+  if (window.visualViewport) {
+    let vpResizeTimer;
+    window.visualViewport.addEventListener('resize', function () {
+      clearTimeout(vpResizeTimer);
+      vpResizeTimer = setTimeout(function () {
+        ScrollTrigger.refresh();
+      }, 300);
+    });
   }
 
   // ページトップボタン
