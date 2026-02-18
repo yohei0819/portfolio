@@ -27,7 +27,6 @@ $(function () {
   // 定数
   var HEADER_SCROLL_THRESHOLD   = 80;
   var PAGE_TOP_SCROLL_THRESHOLD = 400;
-  var FALLBACK_TIMEOUT_MS       = 5000;
 
   var HEADER_OFFSET = parseInt(
     getComputedStyle(document.documentElement).getPropertyValue('--header-height'), 10
@@ -40,49 +39,28 @@ $(function () {
   // =============================================
   // 2. ローディング
   // =============================================
-  
-  // アニメーション対象要素のセレクタリスト（初期設定とフォールバックで共用）
-  var ANIMATION_TARGETS = [
-    '.hero__greeting', '.hero__name-line', '.hero__title',
-    '.hero__description', '.hero__cta', '.hero__scroll-indicator',
-    '.section__number', '.about__text', '.about__skills',
-    '.about__info-item', '.skill-card', '.work-card',
-    '.contact__lead', '.form-group', '.timeline__item',
-    '.works-filter'
-  ];
-
-  // アニメーション対象要素の初期状態を設定（CSS から削除した opacity: 0 を JS で管理）
-  gsap.set(ANIMATION_TARGETS, { opacity: 0 });
-
-  // ローダー完了とページロード完了の両方を待ってからアニメーション初期化
-  var isLoaderDone = false;
-  var isPageLoaded = false;
-  var isAnimationsInitialized = false;
-
-  function tryInitAnimations() {
-    // 二重初期化を防ぐガード
-    if (isAnimationsInitialized) return;
-    if (!isLoaderDone || !isPageLoaded) return;
-    
-    isAnimationsInitialized = true;
-    
-    initHeroAnimation();
-    initParticles();
-    initTextSplit();
-    initScrollAnimations();
-
-    // レイアウト安定後に一度だけ refresh（過剰な refresh はパフォーマンスに悪影響）
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        ScrollTrigger.refresh(true);
-      });
-    });
-  }
-
   var loaderTl = gsap.timeline({
     onComplete: function () {
-      isLoaderDone = true;
-      tryInitAnimations();
+      initHeroAnimation();
+      initParticles();
+      initTextSplit();
+      initScrollAnimations();
+
+      // 【修正】iOS Safari 用に refresh を複数回実行して確実にする
+      ScrollTrigger.refresh();
+
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          setTimeout(function () {
+            ScrollTrigger.refresh();
+          }, 200);
+        });
+      });
+
+      // 【追加】さらに遅延して最終 refresh（lazy 画像対策も兼ねる）
+      setTimeout(function () {
+        ScrollTrigger.refresh();
+      }, 1000);
     }
   });
 
@@ -96,39 +74,13 @@ $(function () {
       yPercent: -100,
       duration: dur(0.8),
       ease: 'power3.inOut',
-      force3D: true,
       delay: 0.2
     })
     .set('#js-loader', { display: 'none' });
 
   window.addEventListener('load', function () {
-    isPageLoaded = true;
-    tryInitAnimations();
+    ScrollTrigger.refresh();
   });
-
-  // フォールバックタイマー: 指定時間後にまだ opacity: 0 の要素があれば強制表示
-  setTimeout(function () {
-    // ANIMATION_TARGETS に split-char を追加（initTextSplit で動的に生成される）
-    var fallbackSelectors = ANIMATION_TARGETS.concat(['.split-char']);
-    var elementsToShow = [];
-    
-    // 最初にすべての要素をチェック（layout recalculation を最小化）
-    fallbackSelectors.forEach(function (selector) {
-      var elements = document.querySelectorAll(selector);
-      elements.forEach(function (el) {
-        var computedOpacity = parseFloat(getComputedStyle(el).opacity);
-        if (computedOpacity === 0) {
-          elementsToShow.push(el);
-        }
-      });
-    });
-    
-    // バッチで opacity を設定
-    if (elementsToShow.length > 0) {
-      gsap.set(elementsToShow, { opacity: 1, y: 0, x: 0 });
-      ScrollTrigger.refresh(true);
-    }
-  }, FALLBACK_TIMEOUT_MS);
 
   // =============================================
   // 3. ヒーローアニメーション + タイピング
@@ -136,35 +88,32 @@ $(function () {
   function initHeroAnimation() {
     var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-    tl.fromTo('.hero__name-line',
-        { yPercent: 120, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: dur(1), stagger: 0.15, force3D: true }
-      )
-      .fromTo('.hero__greeting',
-        { opacity: 0 },
-        { opacity: 1, duration: dur(0.6), force3D: true },
-        '-=0.6'
-      )
-      .fromTo('#js-typing',
-        { opacity: 0 },
-        { opacity: 1, duration: dur(0.3), force3D: true, onComplete: startTyping },
-        '-=0.2'
-      )
-      .fromTo('.hero__description',
-        { opacity: 0 },
-        { opacity: 1, duration: dur(0.6), force3D: true },
-        '+=0.5'
-      )
-      .fromTo('.hero__cta',
-        { opacity: 0 },
-        { opacity: 1, duration: dur(0.6), force3D: true },
-        '-=0.3'
-      )
-      .fromTo('.hero__scroll-indicator',
-        { opacity: 0 },
-        { opacity: 1, duration: dur(0.6), force3D: true },
-        '-=0.3'
-      );
+    tl.from('.hero__name-line', {
+        yPercent: 120,
+        duration: dur(1),
+        stagger: 0.15
+      })
+      .to('.hero__greeting', {
+        opacity: 1,
+        duration: dur(0.6)
+      }, '-=0.6')
+      .to('#js-typing', {
+        opacity: 1,
+        duration: dur(0.3),
+        onComplete: startTyping
+      }, '-=0.2')
+      .to('.hero__description', {
+        opacity: 1,
+        duration: dur(0.6)
+      }, '+=0.5')
+      .to('.hero__cta', {
+        opacity: 1,
+        duration: dur(0.6)
+      }, '-=0.3')
+      .to('.hero__scroll-indicator', {
+        opacity: 1,
+        duration: dur(0.6)
+      }, '-=0.3');
   }
 
   function startTyping() {
@@ -194,7 +143,7 @@ $(function () {
   }
 
   // =============================================
-  // 4. パーティクル背景（最適化版）
+  // 4. パーティクル背景
   // =============================================
   function initParticles() {
     if (isMobile) return;
@@ -202,34 +151,27 @@ $(function () {
     var canvas = document.getElementById('js-particles');
     if (!canvas || prefersReducedMotion) return;
 
-    var ctx = canvas.getContext('2d', { alpha: true });
+    var ctx      = canvas.getContext('2d');
     if (!ctx) return;
 
-    var heroEl = canvas.parentElement;
-    var particles = [];
+    var heroEl   = canvas.parentElement;
+    var particles  = [];
     var animFrameId = null;
 
-    // キャッシュされたキャンバスサイズ（毎フレームのDOM参照を回避）
-    var cachedW = 0;
-    var cachedH = 0;
-
     var CONFIG = {
-      count:        80,          // 200→80に削減（見た目は十分）
-      connectDist:  100,         // 接続距離を短縮
-      connectDistSq: 10000,      // connectDist^2（sqrt回避用）
-      maxSpeed:     0.8,
+      count:        200,
+      connectDist:  120,
+      maxSpeed:     1.2,
       friction:     0.98,
-      driftThresh:  0.4,
-      driftForce:   0.2,
+      driftThresh:  0.5,
+      driftForce:   0.3,
       radiusRestore: 0.05,
       dotAlpha:     0.4,
       lineAlpha:    0.15,
       mouse: {
         radius:     150,
-        radiusSq:   22500,       // radius^2
         force:      2,
         lineDist:   180,
-        lineDistSq: 32400,       // lineDist^2
         lineAlpha:  0.3,
         lineWidth:  0.8,
         glowScale:  2,
@@ -237,58 +179,55 @@ $(function () {
       }
     };
 
-    // 空間グリッド（O(n²)→O(n)近似）
-    var gridCellSize = CONFIG.connectDist;
-    var gridCols = 0;
-    var gridRows = 0;
-    var grid = [];
-
     var ACCENT_RGB = '0,212,255';
     var mouse = { x: -9999, y: -9999, active: false };
 
-    // 事前計算した色文字列キャッシュ
-    var colorCache = {};
-    function rgba(alpha) {
-      var key = (alpha * 100 | 0);
-      if (!colorCache[key]) {
-        colorCache[key] = 'rgba(' + ACCENT_RGB + ',' + alpha.toFixed(2) + ')';
-      }
-      return colorCache[key];
-    }
-
-    function distSq(ax, ay, bx, by) {
+    function distance(ax, ay, bx, by) {
       var dx = ax - bx;
       var dy = ay - by;
-      return dx * dx + dy * dy;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function rgba(alpha) {
+      return 'rgba(' + ACCENT_RGB + ',' + alpha + ')';
+    }
+
+    function drawLine(x1, y1, x2, y2, dist, maxDist, baseAlpha, width) {
+      if (dist >= maxDist) return;
+      var alpha = (1 - dist / maxDist) * baseAlpha;
+      ctx.strokeStyle = rgba(alpha);
+      ctx.lineWidth   = width;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
     }
 
     function resize() {
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      cachedW = heroEl.offsetWidth;
-      cachedH = heroEl.offsetHeight;
+      var w   = heroEl.offsetWidth;
+      var h   = heroEl.offsetHeight;
 
-      if (cachedW === 0 || cachedH === 0) return;
+      if (w === 0 || h === 0) return;
 
-      canvas.width  = cachedW * dpr;
-      canvas.height = cachedH * dpr;
-      canvas.style.width  = cachedW + 'px';
-      canvas.style.height = cachedH + 'px';
+      canvas.width        = w * dpr;
+      canvas.height       = h * dpr;
+      canvas.style.width  = w + 'px';
+      canvas.style.height = h + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      // グリッドサイズ更新
-      gridCols = Math.ceil(cachedW / gridCellSize) + 1;
-      gridRows = Math.ceil(cachedH / gridCellSize) + 1;
     }
 
     function createParticles() {
-      if (cachedW === 0 || cachedH === 0) return;
+      var w = heroEl.offsetWidth;
+      var h = heroEl.offsetHeight;
+      if (w === 0 || h === 0) return;
 
       particles = [];
       for (var i = 0; i < CONFIG.count; i++) {
         var r = Math.random() * 1.5 + 0.5;
         particles.push({
-          x: Math.random() * cachedW,
-          y: Math.random() * cachedH,
+          x: Math.random() * w,
+          y: Math.random() * h,
           vx: (Math.random() - 0.5) * CONFIG.maxSpeed,
           vy: (Math.random() - 0.5) * CONFIG.maxSpeed,
           r: r,
@@ -297,128 +236,64 @@ $(function () {
       }
     }
 
-    function buildGrid() {
-      var len = gridCols * gridRows;
-      grid = new Array(len);
-      for (var i = 0; i < len; i++) grid[i] = [];
-
-      for (var j = 0; j < particles.length; j++) {
-        var p = particles[j];
-        var col = (p.x / gridCellSize) | 0;
-        var row = (p.y / gridCellSize) | 0;
-        if (col >= 0 && col < gridCols && row >= 0 && row < gridRows) {
-          grid[row * gridCols + col].push(j);
-        }
-      }
-    }
-
     function drawParticleLinks() {
-      var maxDistSq = CONFIG.connectDistSq;
-      var maxDist = CONFIG.connectDist;
-
-      ctx.lineWidth = 0.5;
-      ctx.beginPath();
-
-      for (var row = 0; row < gridRows; row++) {
-        for (var col = 0; col < gridCols; col++) {
-          var cellIdx = row * gridCols + col;
-          var cell = grid[cellIdx];
-          if (!cell.length) continue;
-
-          // 自セル＋隣接4方向（右、下、右下、左下）のみチェック
-          var neighbors = [cellIdx];
-          if (col + 1 < gridCols) neighbors.push(cellIdx + 1);
-          if (row + 1 < gridRows) neighbors.push(cellIdx + gridCols);
-          if (col + 1 < gridCols && row + 1 < gridRows) neighbors.push(cellIdx + gridCols + 1);
-          if (col - 1 >= 0 && row + 1 < gridRows) neighbors.push(cellIdx + gridCols - 1);
-
-          for (var ci = 0; ci < cell.length; ci++) {
-            var ai = cell[ci];
-            var a = particles[ai];
-
-            for (var ni = 0; ni < neighbors.length; ni++) {
-              var nCell = grid[neighbors[ni]];
-              var startJ = (neighbors[ni] === cellIdx) ? ci + 1 : 0;
-
-              for (var cj = startJ; cj < nCell.length; cj++) {
-                var b = particles[nCell[cj]];
-                var dSq = distSq(a.x, a.y, b.x, b.y);
-                if (dSq >= maxDistSq) continue;
-
-                var alpha = (1 - Math.sqrt(dSq) / maxDist) * CONFIG.lineAlpha;
-                ctx.strokeStyle = rgba(alpha);
-                ctx.moveTo(a.x, a.y);
-                ctx.lineTo(b.x, b.y);
-              }
-            }
-          }
+      for (var i = 0; i < particles.length; i++) {
+        for (var j = i + 1; j < particles.length; j++) {
+          var a = particles[i];
+          var b = particles[j];
+          var dist = distance(a.x, a.y, b.x, b.y);
+          drawLine(a.x, a.y, b.x, b.y, dist, CONFIG.connectDist, CONFIG.lineAlpha, 0.5);
         }
       }
-      ctx.stroke();
     }
 
     function drawMouseLinks() {
       if (!mouse.active) return;
       var mc = CONFIG.mouse;
-      var maxDistSq = mc.lineDistSq;
-      var maxDist = mc.lineDist;
-
-      ctx.lineWidth = mc.lineWidth;
-      ctx.beginPath();
-
       for (var i = 0; i < particles.length; i++) {
-        var p = particles[i];
-        var dSq = distSq(p.x, p.y, mouse.x, mouse.y);
-        if (dSq >= maxDistSq) continue;
-
-        var alpha = (1 - Math.sqrt(dSq) / maxDist) * mc.lineAlpha;
-        ctx.strokeStyle = rgba(alpha);
-        ctx.moveTo(mouse.x, mouse.y);
-        ctx.lineTo(p.x, p.y);
+        var p    = particles[i];
+        var dist = distance(p.x, p.y, mouse.x, mouse.y);
+        drawLine(mouse.x, mouse.y, p.x, p.y, dist, mc.lineDist, mc.lineAlpha, mc.lineWidth);
       }
-      ctx.stroke();
     }
 
-    function updateAndDrawParticles() {
-      var w = cachedW;
-      var h = cachedH;
+    function applyMouseInteraction(p, dist) {
       var mc = CONFIG.mouse;
-      var defaultFill = rgba(CONFIG.dotAlpha);
-      var TWO_PI = Math.PI * 2;
+      if (dist >= mc.radius || dist <= 0) return false;
 
+      var ratio = 1 - dist / mc.radius;
+      var force = ratio * mc.force;
+      p.vx += ((p.x - mouse.x) / dist) * force;
+      p.vy += ((p.y - mouse.y) / dist) * force;
+
+      p.r = p.baseR * (1 + ratio * mc.glowScale);
+      ctx.fillStyle = rgba(CONFIG.dotAlpha + ratio * mc.glowAlpha);
+      return true;
+    }
+
+    function updateAndDrawParticles(w, h) {
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
 
         var interacted = false;
         if (mouse.active) {
-          var dSq = distSq(p.x, p.y, mouse.x, mouse.y);
-          if (dSq < mc.radiusSq && dSq > 0) {
-            var dist = Math.sqrt(dSq);
-            var ratio = 1 - dist / mc.radius;
-            var force = ratio * mc.force;
-            p.vx += ((p.x - mouse.x) / dist) * force;
-            p.vy += ((p.y - mouse.y) / dist) * force;
-            p.r = p.baseR * (1 + ratio * mc.glowScale);
-            ctx.fillStyle = rgba(CONFIG.dotAlpha + ratio * mc.glowAlpha);
-            interacted = true;
-          }
+          var dist = distance(p.x, p.y, mouse.x, mouse.y);
+          interacted = applyMouseInteraction(p, dist);
         }
         if (!interacted) {
           p.r += (p.baseR - p.r) * CONFIG.radiusRestore;
-          ctx.fillStyle = defaultFill;
+          ctx.fillStyle = rgba(CONFIG.dotAlpha);
         }
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, TWO_PI);
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
 
         p.vx *= CONFIG.friction;
         p.vy *= CONFIG.friction;
 
-        var speedSq = p.vx * p.vx + p.vy * p.vy;
-        var driftThreshSq = CONFIG.maxSpeed * CONFIG.driftThresh;
-        driftThreshSq *= driftThreshSq;
-        if (speedSq < driftThreshSq) {
+        var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (speed < CONFIG.maxSpeed * CONFIG.driftThresh) {
           p.vx += (Math.random() - 0.5) * CONFIG.driftForce;
           p.vy += (Math.random() - 0.5) * CONFIG.driftForce;
         }
@@ -434,11 +309,13 @@ $(function () {
     }
 
     function draw() {
-      ctx.clearRect(0, 0, cachedW, cachedH);
-      buildGrid();
+      var w = heroEl.offsetWidth;
+      var h = heroEl.offsetHeight;
+
+      ctx.clearRect(0, 0, w, h);
       drawParticleLinks();
       drawMouseLinks();
-      updateAndDrawParticles();
+      updateAndDrawParticles(w, h);
 
       animFrameId = requestAnimationFrame(draw);
     }
@@ -450,17 +327,10 @@ $(function () {
       animFrameId = requestAnimationFrame(draw);
     }
 
-    // マウスイベントはthrottle（getBoundingClientRectのキャッシュ）
-    var heroRect = null;
-    var rectTimer = null;
-    function updateRect() {
-      heroRect = heroEl.getBoundingClientRect();
-    }
-
     heroEl.addEventListener('mousemove', function (e) {
-      if (!heroRect) updateRect();
-      mouse.x = e.clientX - heroRect.left;
-      mouse.y = e.clientY - heroRect.top;
+      var rect = heroEl.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
       mouse.active = true;
     });
 
@@ -470,9 +340,9 @@ $(function () {
 
     heroEl.addEventListener('touchmove', function (e) {
       if (e.touches.length > 0) {
-        if (!heroRect) updateRect();
-        mouse.x = e.touches[0].clientX - heroRect.left;
-        mouse.y = e.touches[0].clientY - heroRect.top;
+        var rect = heroEl.getBoundingClientRect();
+        mouse.x = e.touches[0].clientX - rect.left;
+        mouse.y = e.touches[0].clientY - rect.top;
         mouse.active = true;
       }
     }, { passive: true });
@@ -484,13 +354,8 @@ $(function () {
     var resizeTimer;
     window.addEventListener('resize', function () {
       clearTimeout(resizeTimer);
-      heroRect = null; // リサイズ時にrectキャッシュ無効化
       resizeTimer = setTimeout(rebuild, 200);
     });
-
-    window.addEventListener('scroll', function () {
-      heroRect = null; // スクロール時にrectキャッシュ無効化
-    }, { passive: true });
 
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
@@ -542,23 +407,22 @@ $(function () {
       el.innerHTML = html;
 
       var chars = el.querySelectorAll('.split-char');
+      gsap.set(chars, { opacity: 0, y: 20 });
 
-      gsap.fromTo(chars,
-        { opacity: 0, y: 20 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: dur(0.5),
-          stagger: 0.03,
-          ease: 'power3.out',
-          force3D: true,
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 85%',
-            toggleActions: 'play none none none'
-          }
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top 85%',
+        once: true,
+        onEnter: function () {
+          gsap.to(chars, {
+            opacity: 1,
+            y: 0,
+            duration: dur(0.5),
+            stagger: 0.05,
+            ease: 'power3.out'
+          });
         }
-      );
+      });
     });
   }
 
@@ -597,7 +461,6 @@ $(function () {
           duration: duration,
           delay: delay,
           ease: ease,
-          force3D: true,
           scrollTrigger: {
             trigger: triggerEl || targets,
             start: start,
@@ -789,8 +652,7 @@ $(function () {
           opacity: 1,
           scale: 1,
           duration: dur(0.4),
-          ease: 'power2.out',
-          force3D: true
+          ease: 'power2.out'
         });
       } else {
         if ($card.hasClass('is-hidden')) return;
@@ -799,7 +661,6 @@ $(function () {
           scale: 0.9,
           duration: dur(0.3),
           ease: 'power2.in',
-          force3D: true,
           onComplete: function () {
             $card.addClass('is-hidden');
           }
