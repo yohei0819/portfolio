@@ -147,21 +147,27 @@ $(function () {
     if (!canvas || prefersReducedMotion) return;
 
     const ctx      = canvas.getContext('2d');
+    if (!ctx) return;
+
     const heroEl   = canvas.parentElement;
     let particles  = [];
     let animFrameId = null;
 
+    // モバイル判定
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                  || (navigator.maxTouchPoints > 1 && window.innerWidth <= 900);
+
     // --- 設定定数 ---
     const CONFIG = {
-      count:        200,          // パーティクル数
-      connectDist:  120,          // パーティクル間の接続距離
-      maxSpeed:     1.2,          // 基本最大速度
+      count:        isMobile ? 50 : 200,     // パーティクル数（モバイルは軽量化）
+      connectDist:  isMobile ? 80 : 120,     // パーティクル間の接続距離
+      maxSpeed:     isMobile ? 0.8 : 1.2,    // 基本最大速度
       friction:     0.98,         // 摩擦係数（1 に近いほど滑らか）
       driftThresh:  0.5,          // 最低速度の閾値（maxSpeed の倍率）
       driftForce:   0.3,          // 停滞時に加えるランダム力
       radiusRestore: 0.05,        // 半径の復元速度
 
-      dotAlpha:     0.4,          // パーティクルの基本透明度
+      dotAlpha:     isMobile ? 0.6 : 0.4,    // パーティクルの基本透明度
       lineAlpha:    0.15,         // 接続線の基本透明度
 
       mouse: {
@@ -211,25 +217,30 @@ $(function () {
 
     /** キャンバスサイズを親要素に合わせる（Retina 対応） */
     function resize() {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // dpr上限2で省メモリ化
       const w   = heroEl.offsetWidth;
       const h   = heroEl.offsetHeight;
+
+      if (w === 0 || h === 0) return; // レイアウト未確定なら何もしない
 
       canvas.width        = w * dpr;
       canvas.height       = h * dpr;
       canvas.style.width  = w + 'px';
       canvas.style.height = h + 'px';
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 累積しないようリセット+スケール
     }
 
     /** パーティクルを生成（CSS ピクセル座標で管理） */
     function createParticles() {
       const w = heroEl.offsetWidth;
       const h = heroEl.offsetHeight;
+      if (w === 0 || h === 0) return;
 
       particles = [];
       for (let i = 0; i < CONFIG.count; i++) {
-        const r = Math.random() * 1.5 + 0.5;
+        const r = isMobile
+          ? Math.random() * 2 + 1        // モバイル: 1〜3px（視認性向上）
+          : Math.random() * 1.5 + 0.5;   // PC: 0.5〜2px
         particles.push({
           x: Math.random() * w,
           y: Math.random() * h,
@@ -366,12 +377,48 @@ $(function () {
       mouse.active = false;
     });
 
+    // タッチイベント（スマホ対応）
+    heroEl.addEventListener('touchmove', function (e) {
+      if (e.touches.length > 0) {
+        const rect = heroEl.getBoundingClientRect();
+        mouse.x = e.touches[0].clientX - rect.left;
+        mouse.y = e.touches[0].clientY - rect.top;
+        mouse.active = true;
+      }
+    }, { passive: true });
+
+    heroEl.addEventListener('touchend', function () {
+      mouse.active = false;
+    });
+
     // リサイズ時にデバウンスして再構築
     let resizeTimer;
     window.addEventListener('resize', function () {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(rebuild, 200);
     });
+
+    // 画面外では描画を停止してバッテリー節約
+    if ('IntersectionObserver' in window) {
+      var isVisible = true;
+      var observer = new IntersectionObserver(function (entries) {
+        isVisible = entries[0].isIntersecting;
+        if (isVisible && !animFrameId) {
+          animFrameId = requestAnimationFrame(draw);
+        }
+      }, { threshold: 0.1 });
+      observer.observe(heroEl);
+
+      // draw 関数でスキップ判定
+      var origDraw = draw;
+      draw = function () {
+        if (!isVisible) {
+          animFrameId = null;
+          return;
+        }
+        origDraw();
+      };
+    }
 
     // 初期化
     rebuild();

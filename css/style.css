@@ -1337,6 +1337,27 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .work-card:hover {
+    transform: none; /* タッチデバイスではホバー浮き上がりを無効化 */
+  }
+
+  .work-card__title {
+    font-size: 1rem;
+  }
+
+  .work-card__body {
+    padding: var(--sp-md);
+  }
+
+  .about__heading {
+    font-size: 1.125rem;
+  }
+
+  .about__info-item {
+    flex-direction: column;
+    gap: var(--sp-xs);
+  }
+
   .footer__inner {
     flex-direction: column;
     gap: var(--sp-md);
@@ -1365,6 +1386,12 @@ button {
 
   .works-filter__btn {
     white-space: nowrap;
+    min-height: 44px; /* タッチターゲット最低サイズ */
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 1rem; /* iOS ズーム防止: 16px以上 */
   }
 
   .modal__body {
@@ -1374,6 +1401,20 @@ button {
   .modal__info-item {
     flex-direction: column;
     gap: var(--sp-xs);
+  }
+
+  .timeline {
+    padding-left: 24px;
+  }
+
+  .timeline__dot {
+    left: -24px;
+    width: 12px;
+    height: 12px;
+  }
+
+  .hero__scroll-indicator {
+    bottom: 20px;
   }
 }
 
