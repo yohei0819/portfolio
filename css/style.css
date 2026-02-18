@@ -430,7 +430,6 @@ button {
   color: var(--c-accent);
   letter-spacing: 0.1em;
   margin-bottom: var(--sp-md);
-  opacity: 0;
 }
 
 .hero__name {
@@ -445,7 +444,6 @@ button {
 .hero__name-line {
   display: block;
   overflow: hidden;
-  opacity: 0;
 }
 
 .hero__title {
@@ -455,14 +453,12 @@ button {
   color: var(--c-text-muted);
   letter-spacing: 0.15em;
   margin-bottom: var(--sp-lg);
-  opacity: 0;
 }
 
 .hero__description {
   font-size: 1rem;
   color: var(--c-text);
   margin-bottom: 40px;
-  opacity: 0;
 }
 
 .hero__cta {
@@ -470,7 +466,6 @@ button {
   gap: var(--sp-md);
   justify-content: center;
   flex-wrap: wrap;
-  opacity: 0;
 }
 
 /* スクロールインジケーター */
@@ -483,7 +478,6 @@ button {
   flex-direction: column;
   align-items: center;
   gap: var(--sp-sm);
-  opacity: 0;
 }
 
 .hero__scroll-indicator span {
@@ -542,7 +536,6 @@ button {
   letter-spacing: 0.1em;
   display: block;
   margin-bottom: var(--sp-sm);
-  opacity: 0;
 }
 
 .section__title {
@@ -560,11 +553,6 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--sp-4xl);
-}
-
-.about__text,
-.about__skills {
-  opacity: 0;
 }
 
 .about__heading {
@@ -596,7 +584,6 @@ button {
   gap: var(--sp-lg);
   padding-block: var(--sp-md);
   border-bottom: 1px solid var(--c-border);
-  opacity: 0;
 }
 
 .about__info-label {
@@ -629,7 +616,6 @@ button {
   padding: var(--sp-sm) var(--sp-lg);
   transition: border-color var(--duration) var(--ease-out),
               background-color var(--duration) var(--ease-out);
-  opacity: 0;
 }
 
 .skill-card:hover {
@@ -661,7 +647,6 @@ button {
   transition: transform var(--duration) var(--ease-out),
               border-color var(--duration) var(--ease-out),
               box-shadow var(--duration) var(--ease-out);
-  opacity: 0;
 }
 
 .work-card:hover {
@@ -776,7 +761,6 @@ button {
   color: var(--c-text-muted);
   margin-bottom: var(--sp-2xl);
   max-width: 500px;
-  opacity: 0;
 }
 
 .contact-form {
@@ -785,7 +769,6 @@ button {
 
 .form-group {
   margin-bottom: 28px;
-  opacity: 0;
 }
 
 .form-group label {
@@ -1008,7 +991,6 @@ button {
    ============================================ */
 .split-char {
   display: inline-block;
-  opacity: 0;
 }
 
 /* ============================================
@@ -1036,7 +1018,6 @@ button {
 .timeline__item {
   position: relative;
   padding-bottom: var(--sp-2xl);
-  opacity: 0;
 }
 
 .timeline__item:last-child {
@@ -1092,7 +1073,6 @@ button {
   flex-wrap: wrap;
   gap: var(--sp-sm);
   margin-bottom: var(--sp-xl);
-  opacity: 0;
 }
 
 .works-filter__btn {

@@ -27,6 +27,7 @@ $(function () {
   // 定数
   var HEADER_SCROLL_THRESHOLD   = 80;
   var PAGE_TOP_SCROLL_THRESHOLD = 400;
+  var FALLBACK_TIMEOUT_MS       = 5000;
 
   var HEADER_OFFSET = parseInt(
     getComputedStyle(document.documentElement).getPropertyValue('--header-height'), 10
@@ -39,28 +40,57 @@ $(function () {
   // =============================================
   // 2. ローディング
   // =============================================
+  
+  // アニメーション対象要素のセレクタリスト（初期設定とフォールバックで共用）
+  var ANIMATION_TARGETS = [
+    '.hero__greeting', '.hero__name-line', '.hero__title',
+    '.hero__description', '.hero__cta', '.hero__scroll-indicator',
+    '.section__number', '.about__text', '.about__skills',
+    '.about__info-item', '.skill-card', '.work-card',
+    '.contact__lead', '.form-group', '.timeline__item',
+    '.works-filter'
+  ];
+
+  // アニメーション対象要素の初期状態を設定（CSS から削除した opacity: 0 を JS で管理）
+  gsap.set(ANIMATION_TARGETS, { opacity: 0 });
+
+  // ローダー完了とページロード完了の両方を待ってからアニメーション初期化
+  var isLoaderDone = false;
+  var isPageLoaded = false;
+  var isAnimationsInitialized = false;
+
+  function tryInitAnimations() {
+    // 二重初期化を防ぐガード
+    if (isAnimationsInitialized) return;
+    if (!isLoaderDone || !isPageLoaded) return;
+    
+    isAnimationsInitialized = true;
+    
+    initHeroAnimation();
+    initParticles();
+    initTextSplit();
+    initScrollAnimations();
+
+    // iOS Safari 用に refresh を複数回実行して確実にする
+    ScrollTrigger.refresh(true);
+
+    // 2フレーム待機: 1フレーム目でレイアウト計算、2フレーム目で正確な位置を取得
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        ScrollTrigger.refresh(true);
+      });
+    });
+
+    // さらに遅延して最終 refresh（lazy 画像対策も兼ねる）
+    setTimeout(function () {
+      ScrollTrigger.refresh(true);
+    }, 500);
+  }
+
   var loaderTl = gsap.timeline({
     onComplete: function () {
-      initHeroAnimation();
-      initParticles();
-      initTextSplit();
-      initScrollAnimations();
-
-      // 【修正】iOS Safari 用に refresh を複数回実行して確実にする
-      ScrollTrigger.refresh();
-
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          setTimeout(function () {
-            ScrollTrigger.refresh();
-          }, 200);
-        });
-      });
-
-      // 【追加】さらに遅延して最終 refresh（lazy 画像対策も兼ねる）
-      setTimeout(function () {
-        ScrollTrigger.refresh();
-      }, 1000);
+      isLoaderDone = true;
+      tryInitAnimations();
     }
   });
 
@@ -79,8 +109,34 @@ $(function () {
     .set('#js-loader', { display: 'none' });
 
   window.addEventListener('load', function () {
-    ScrollTrigger.refresh();
+    isPageLoaded = true;
+    tryInitAnimations();
+    ScrollTrigger.refresh(true);
   });
+
+  // フォールバックタイマー: 指定時間後にまだ opacity: 0 の要素があれば強制表示
+  setTimeout(function () {
+    // ANIMATION_TARGETS に split-char を追加（initTextSplit で動的に生成される）
+    var fallbackSelectors = ANIMATION_TARGETS.concat(['.split-char']);
+    var elementsToShow = [];
+    
+    // 最初にすべての要素をチェック（layout recalculation を最小化）
+    fallbackSelectors.forEach(function (selector) {
+      var elements = document.querySelectorAll(selector);
+      elements.forEach(function (el) {
+        var computedOpacity = parseFloat(getComputedStyle(el).opacity);
+        if (computedOpacity === 0) {
+          elementsToShow.push(el);
+        }
+      });
+    });
+    
+    // バッチで opacity を設定
+    if (elementsToShow.length > 0) {
+      gsap.set(elementsToShow, { opacity: 1, y: 0, x: 0 });
+      ScrollTrigger.refresh(true);
+    }
+  }, FALLBACK_TIMEOUT_MS);
 
   // =============================================
   // 3. ヒーローアニメーション + タイピング
