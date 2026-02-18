@@ -80,7 +80,7 @@ $(function () {
       safeInit('scrollAnim', initScrollAnimations);
       safeInit('navHL',      initNavHighlight);
 
-      setTimeout(revealHiddenElements, 4000);
+      setTimeout(revealHiddenElements, prefersReducedMotion ? 500 : 4000);
     }
   });
 
@@ -94,7 +94,7 @@ $(function () {
       yPercent: -100,
       duration: dur(0.8),
       ease: 'power3.inOut',
-      delay: 0.2
+      delay: dur(0.2)
     })
     .set('#js-loader', { display: 'none' });
 
@@ -129,37 +129,37 @@ $(function () {
     tl.fromTo(
         '.hero__name-line',
         { yPercent: 120 },
-        { yPercent: 0, duration: dur(1), stagger: 0.15 }
+        { yPercent: 0, duration: dur(1), stagger: dur(0.15) }
       )
       .fromTo(
         '.hero__greeting',
         { opacity: 0 },
         { opacity: 1, duration: dur(0.6) },
-        '-=0.6'
+        '-=' + dur(0.6)
       )
       .fromTo(
         '#js-typing',
         { opacity: 0 },
         { opacity: 1, duration: dur(0.3), onComplete: startTyping },
-        '-=0.2'
+        '-=' + dur(0.2)
       )
       .fromTo(
         '.hero__description',
         { opacity: 0 },
         { opacity: 1, duration: dur(0.6) },
-        '+=0.5'
+        '+=' + dur(0.5)
       )
       .fromTo(
         '.hero__cta',
         { opacity: 0 },
         { opacity: 1, duration: dur(0.6) },
-        '-=0.3'
+        '-=' + dur(0.3)
       )
       .fromTo(
         '.hero__scroll-indicator',
         { opacity: 0 },
         { opacity: 1, duration: dur(0.6) },
-        '-=0.3'
+        '-=' + dur(0.3)
       );
   }
 
@@ -233,7 +233,7 @@ $(function () {
             opacity: 1,
             y: 0,
             duration: dur(0.5),
-            stagger: 0.05,
+            stagger: dur(0.05),
             ease: 'power3.out'
           });
         });
@@ -273,7 +273,7 @@ $(function () {
       var fromY    = o.y !== undefined ? o.y : 40;
       var fromX    = o.x || 0;
       var duration = o.duration || dur(0.8);
-      var stagger  = o.stagger !== undefined ? o.stagger : 0.1;
+      var stagger  = o.stagger !== undefined ? o.stagger : dur(0.1);
       var ease     = o.ease || 'power3.out';
 
       var els = document.querySelectorAll(selector);
@@ -293,13 +293,13 @@ $(function () {
 
     fadeIn('.about__text',   { x: -40, y: 0 });
     fadeIn('.about__skills', { x: 40,  y: 0 });
-    staggerFadeIn('.skill-card',       { y: 20, duration: dur(0.5), stagger: 0.08 });
+    staggerFadeIn('.skill-card',       { y: 20, duration: dur(0.5), stagger: dur(0.08) });
     staggerFadeIn('.about__info-item', { x: -20, y: 0, duration: dur(0.5) });
 
-    staggerFadeIn('.timeline__item', { x: -30, y: 0, duration: dur(0.6), stagger: 0.15 });
+    staggerFadeIn('.timeline__item', { x: -30, y: 0, duration: dur(0.6), stagger: dur(0.15) });
 
     fadeIn('.works-filter', { y: 20, duration: dur(0.5) });
-    staggerFadeIn('.work-card', { y: 60, stagger: 0.15 });
+    staggerFadeIn('.work-card', { y: 60, stagger: dur(0.15) });
 
     fadeIn('.contact__lead', { y: 30, duration: dur(0.6) });
     staggerFadeIn('.form-group', { y: 30, duration: dur(0.5) });
@@ -409,9 +409,18 @@ $(function () {
      ================================================ */
   $(document).on('click', 'a[href^="#"]', function (e) {
     var href = $(this).attr('href');
-    if (href === '#') return;
 
     e.preventDefault();
+
+    if (href === '#') {
+      gsap.to(window, {
+        scrollTo: { y: 0, autoKill: false },
+        duration: dur(1),
+        ease: 'power3.inOut'
+      });
+      return;
+    }
+
     var $target = $(href);
     if (!$target.length) return;
 
@@ -506,7 +515,7 @@ $(function () {
   $modal.on('keydown', function (e) {
     if (e.key !== 'Tab') return;
 
-    var $focusable = $modal.find('a[href], button:not([disabled]), [tabindex="-1"]');
+    var $focusable = $modal.find('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])');
     if (!$focusable.length) return;
 
     var $first = $focusable.first();
@@ -518,7 +527,7 @@ $(function () {
         $last.trigger('focus');
       }
     } else {
-      if ($(document.activeElement).is($last)) {
+      if ($(document.activeElement).is($last) || $(document.activeElement).is($modalContainer)) {
         e.preventDefault();
         $first.trigger('focus');
       }
@@ -604,7 +613,7 @@ $(function () {
         duration: 0.3,
         ease: 'power2.out'
       });
-    }, false);
+    }, { passive: true });
 
     $(document)
       .on('mouseenter', 'a, button, .work-card', function () {
