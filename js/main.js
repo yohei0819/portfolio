@@ -42,7 +42,7 @@ $(function () {
   var loaderTl = gsap.timeline({
     onComplete: function () {
       initHeroAnimation();
-      initParticles();
+      // initParticles(); // 一時的に無効化
       initTextSplit();
       initScrollAnimations();
 
