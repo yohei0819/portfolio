@@ -1,23 +1,3 @@
-/**
- * main.js - ポートフォリオサイト
- * jQuery + GSAP (ScrollTrigger / ScrollToPlugin)
- *
- * 構成:
- *   1.  初期設定
- *   2.  ローディング
- *   3.  ヒーローアニメーション + タイピング
- *   4.  パーティクル背景（マウスインタラクション対応）
- *   5.  テキストスプリットアニメーション
- *   6.  スクロールアニメーション
- *   7.  ヘッダー / ページトップ / ナビ
- *   8.  ハンバーガーメニュー
- *   9.  スムーススクロール
- *   10. Works フィルター
- *   11. Works モーダル
- *   12. フォームバリデーション
- *   13. カスタムカーソル
- */
-
 $(function () {
   'use strict';
 
@@ -26,18 +6,11 @@ $(function () {
   // =============================================
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-  // iOS Safari 対応: アドレスバーの表示/非表示で ScrollTrigger が壊れるのを防止
   ScrollTrigger.config({ ignoreMobileResize: true });
 
-  // prefers-reduced-motion を尊重
-  // true → DURATION = 0（即座に完了） / false → undefined
   var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var DURATION = prefersReducedMotion ? 0 : undefined;
 
-  /**
-   * iOS 13.3 以前は ?? (nullish coalescing) 未対応のため
-   * DURATION が 0 のとき || だとフォールバックされてしまう問題を回避するヘルパー
-   */
   function dur(fallback) {
     return DURATION !== undefined ? DURATION : fallback;
   }
@@ -55,10 +28,13 @@ $(function () {
   var HEADER_SCROLL_THRESHOLD   = 80;
   var PAGE_TOP_SCROLL_THRESHOLD = 400;
 
-  // CSS カスタムプロパティからヘッダー高さを取得（フォールバック: 80px）
   var HEADER_OFFSET = parseInt(
     getComputedStyle(document.documentElement).getPropertyValue('--header-height'), 10
   ) || 80;
+
+  // モバイル判定（共通で使用）
+  var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                || (navigator.maxTouchPoints > 1 && window.innerWidth <= 900);
 
   // =============================================
   // 2. ローディング
@@ -70,15 +46,21 @@ $(function () {
       initTextSplit();
       initScrollAnimations();
 
-      // モバイルブラウザではローダー除去後にレイアウトが変わるため
-      // ScrollTrigger の位置計算を再実行する（iOS Safari では 2 重 rAF + 遅延が必要）
+      // 【修正】iOS Safari 用に refresh を複数回実行して確実にする
+      ScrollTrigger.refresh();
+
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
           setTimeout(function () {
             ScrollTrigger.refresh();
-          }, 100);
+          }, 200);
         });
       });
+
+      // 【追加】さらに遅延して最終 refresh（lazy 画像対策も兼ねる）
+      setTimeout(function () {
+        ScrollTrigger.refresh();
+      }, 1000);
     }
   });
 
@@ -96,8 +78,6 @@ $(function () {
     })
     .set('#js-loader', { display: 'none' });
 
-  // lazy 画像の読み込み完了後に ScrollTrigger の位置を再計算
-  // loading="lazy" の画像はローダー完了時点でまだ読み込まれていない可能性がある
   window.addEventListener('load', function () {
     ScrollTrigger.refresh();
   });
@@ -136,10 +116,6 @@ $(function () {
       }, '-=0.3');
   }
 
-  /**
-   * タイピングエフェクト — 「Frontend Coder」を 1 文字ずつ打ち出す
-   * 打ち終わったらカーソルの点滅を止め、一定時間後にカーソルをフェードアウトする
-   */
   function startTyping() {
     var TYPING_TEXT        = 'Frontend Coder';
     var TYPING_INTERVAL_MS = 80;
@@ -170,9 +146,6 @@ $(function () {
   // 4. パーティクル背景
   // =============================================
   function initParticles() {
-    // モバイル判定 — スマホではパーティクルを描画しない
-    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-                  || (navigator.maxTouchPoints > 1 && window.innerWidth <= 900);
     if (isMobile) return;
 
     var canvas = document.getElementById('js-particles');
@@ -185,51 +158,40 @@ $(function () {
     var particles  = [];
     var animFrameId = null;
 
-    // --- 設定定数 ---
     var CONFIG = {
-      count:        isMobile ? 50 : 200,     // パーティクル数（モバイルは軽量化）
-      connectDist:  isMobile ? 80 : 120,     // パーティクル間の接続距離
-      maxSpeed:     isMobile ? 0.8 : 1.2,    // 基本最大速度
-      friction:     0.98,         // 摩擦係数（1 に近いほど滑らか）
-      driftThresh:  0.5,          // 最低速度の閾値（maxSpeed の倍率）
-      driftForce:   0.3,          // 停滞時に加えるランダム力
-      radiusRestore: 0.05,        // 半径の復元速度
-
-      dotAlpha:     isMobile ? 0.6 : 0.4,    // パーティクルの基本透明度
-      lineAlpha:    0.15,         // 接続線の基本透明度
-
+      count:        200,
+      connectDist:  120,
+      maxSpeed:     1.2,
+      friction:     0.98,
+      driftThresh:  0.5,
+      driftForce:   0.3,
+      radiusRestore: 0.05,
+      dotAlpha:     0.4,
+      lineAlpha:    0.15,
       mouse: {
-        radius:     150,          // マウスの影響範囲（px）
-        force:      2,            // 押し出す力の強さ
-        lineDist:   180,          // マウス接続線の距離
-        lineAlpha:  0.3,          // マウス接続線の透明度
-        lineWidth:  0.8,          // マウス接続線の太さ
-        glowScale:  2,            // マウス近接時の半径倍率
-        glowAlpha:  0.5           // マウス近接時の追加透明度
+        radius:     150,
+        force:      2,
+        lineDist:   180,
+        lineAlpha:  0.3,
+        lineWidth:  0.8,
+        glowScale:  2,
+        glowAlpha:  0.5
       }
     };
 
-    // アクセントカラー（RGB）
     var ACCENT_RGB = '0,212,255';
-
-    // マウス座標（CSS ピクセル座標、heroEl 相対）
     var mouse = { x: -9999, y: -9999, active: false };
 
-    // --- ユーティリティ ---
-
-    /** 2 点間の距離を算出 */
     function distance(ax, ay, bx, by) {
       var dx = ax - bx;
       var dy = ay - by;
       return Math.sqrt(dx * dx + dy * dy);
     }
 
-    /** アクセントカラーの rgba 文字列を返す */
     function rgba(alpha) {
       return 'rgba(' + ACCENT_RGB + ',' + alpha + ')';
     }
 
-    /** 2 点間に接続線を描画する（距離がしきい値以内の場合のみ） */
     function drawLine(x1, y1, x2, y2, dist, maxDist, baseAlpha, width) {
       if (dist >= maxDist) return;
       var alpha = (1 - dist / maxDist) * baseAlpha;
@@ -241,24 +203,20 @@ $(function () {
       ctx.stroke();
     }
 
-    // --- コア処理 ---
-
-    /** キャンバスサイズを親要素に合わせる（Retina 対応） */
     function resize() {
-      var dpr = Math.min(window.devicePixelRatio || 1, 2); // dpr上限2で省メモリ化
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
       var w   = heroEl.offsetWidth;
       var h   = heroEl.offsetHeight;
 
-      if (w === 0 || h === 0) return; // レイアウト未確定なら何もしない
+      if (w === 0 || h === 0) return;
 
       canvas.width        = w * dpr;
       canvas.height       = h * dpr;
       canvas.style.width  = w + 'px';
       canvas.style.height = h + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 累積しないようリセット+スケール
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    /** パーティクルを生成（CSS ピクセル座標で管理） */
     function createParticles() {
       var w = heroEl.offsetWidth;
       var h = heroEl.offsetHeight;
@@ -266,9 +224,7 @@ $(function () {
 
       particles = [];
       for (var i = 0; i < CONFIG.count; i++) {
-        var r = isMobile
-          ? Math.random() * 2 + 1        // モバイル: 1〜3px（視認性向上）
-          : Math.random() * 1.5 + 0.5;   // PC: 0.5〜2px
+        var r = Math.random() * 1.5 + 0.5;
         particles.push({
           x: Math.random() * w,
           y: Math.random() * h,
@@ -280,7 +236,6 @@ $(function () {
       }
     }
 
-    /** パーティクル同士の接続線を描画 */
     function drawParticleLinks() {
       for (var i = 0; i < particles.length; i++) {
         for (var j = i + 1; j < particles.length; j++) {
@@ -292,7 +247,6 @@ $(function () {
       }
     }
 
-    /** マウスとパーティクル間の接続線を描画 */
     function drawMouseLinks() {
       if (!mouse.active) return;
       var mc = CONFIG.mouse;
@@ -303,35 +257,24 @@ $(function () {
       }
     }
 
-    /**
-     * マウスインタラクションを適用
-     * @param {Object} p    - パーティクル
-     * @param {number} dist - マウスとの距離
-     * @return {boolean} インタラクションが発生したか
-     */
     function applyMouseInteraction(p, dist) {
       var mc = CONFIG.mouse;
       if (dist >= mc.radius || dist <= 0) return false;
 
       var ratio = 1 - dist / mc.radius;
-
-      // 押し出し
       var force = ratio * mc.force;
       p.vx += ((p.x - mouse.x) / dist) * force;
       p.vy += ((p.y - mouse.y) / dist) * force;
 
-      // グロー（サイズ＆輝度アップ）
       p.r = p.baseR * (1 + ratio * mc.glowScale);
       ctx.fillStyle = rgba(CONFIG.dotAlpha + ratio * mc.glowAlpha);
       return true;
     }
 
-    /** 各パーティクルの描画・物理更新 */
     function updateAndDrawParticles(w, h) {
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
 
-        // マウスインタラクション or デフォルト描画色
         var interacted = false;
         if (mouse.active) {
           var dist = distance(p.x, p.y, mouse.x, mouse.y);
@@ -342,27 +285,22 @@ $(function () {
           ctx.fillStyle = rgba(CONFIG.dotAlpha);
         }
 
-        // 描画
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
 
-        // 摩擦
         p.vx *= CONFIG.friction;
         p.vy *= CONFIG.friction;
 
-        // 停滞防止（最低速度を維持）
         var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
         if (speed < CONFIG.maxSpeed * CONFIG.driftThresh) {
           p.vx += (Math.random() - 0.5) * CONFIG.driftForce;
           p.vy += (Math.random() - 0.5) * CONFIG.driftForce;
         }
 
-        // 位置更新
         p.x += p.vx;
         p.y += p.vy;
 
-        // 画面端で反対側にワープ
         if (p.x < 0) p.x = w;
         if (p.x > w) p.x = 0;
         if (p.y < 0) p.y = h;
@@ -370,7 +308,6 @@ $(function () {
       }
     }
 
-    /** メイン描画ループ */
     function draw() {
       var w = heroEl.offsetWidth;
       var h = heroEl.offsetHeight;
@@ -383,7 +320,6 @@ $(function () {
       animFrameId = requestAnimationFrame(draw);
     }
 
-    /** キャンバスを再構築（リサイズ時） */
     function rebuild() {
       if (animFrameId) cancelAnimationFrame(animFrameId);
       resize();
@@ -391,9 +327,6 @@ $(function () {
       animFrameId = requestAnimationFrame(draw);
     }
 
-    // --- イベントリスナー ---
-
-    // マウスイベント（キャンバスは pointer-events:none のため親要素で監視）
     heroEl.addEventListener('mousemove', function (e) {
       var rect = heroEl.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
@@ -405,7 +338,6 @@ $(function () {
       mouse.active = false;
     });
 
-    // タッチイベント（スマホ対応）
     heroEl.addEventListener('touchmove', function (e) {
       if (e.touches.length > 0) {
         var rect = heroEl.getBoundingClientRect();
@@ -419,14 +351,12 @@ $(function () {
       mouse.active = false;
     });
 
-    // リサイズ時にデバウンスして再構築
     var resizeTimer;
     window.addEventListener('resize', function () {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(rebuild, 200);
     });
 
-    // タブ非表示時は描画を停止してバッテリー節約
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
         if (animFrameId) {
@@ -440,19 +370,12 @@ $(function () {
       }
     });
 
-    // 初期化——レイアウト確定待ちのため少し遅延
     setTimeout(rebuild, 50);
   }
 
   // =============================================
   // 5. テキストスプリットアニメーション
   // =============================================
-
-  /**
-   * HTML 特殊文字をエスケープ
-   * @param  {string} str - 生テキスト
-   * @return {string} エスケープ済み文字列
-   */
   function escapeHtml(str) {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
@@ -466,7 +389,6 @@ $(function () {
 
       nodes.forEach(function (node) {
         if (node.nodeType === Node.TEXT_NODE) {
-          // テキストノード → 1 文字ずつ span で囲む
           var text = node.textContent;
           for (var i = 0; i < text.length; i++) {
             if (text[i] === ' ') {
@@ -476,7 +398,6 @@ $(function () {
             }
           }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
-          // 既存の要素ノード（<span class="u-accent"> 等）を保持
           var clone = node.cloneNode(true);
           clone.classList.add('split-char');
           html += clone.outerHTML;
@@ -506,49 +427,44 @@ $(function () {
   }
 
   // =============================================
-  // 6. スクロールアニメーション
+  // 6. スクロールアニメーション【大幅修正】
   // =============================================
   function initScrollAnimations() {
     /**
-     * スクロールトリガー付きフェードインヘルパー
-     * gsap.set で初期状態をセットし、ScrollTrigger.create(once) で
-     * 画面内に入ったら gsap.to で表示するパターン。
-     * iOS Safari でも確実に動作する。
+     * 【修正ポイント】
+     * 旧: gsap.set() で opacity:0 → ScrollTrigger の onEnter で gsap.to()
+     * 問題: ローダー完了時に既にビューポート内の要素は onEnter が発火せず
+     *       永久に opacity:0 のまま（特にスマホで画面が小さく要素が見えている場合）
+     *
+     * 新: gsap.from() + scrollTrigger オプションを使用
+     *     → GSAP が自動的にビューポート内の要素を即座にアニメーション開始してくれる
+     *     → toggleActions で "play none none none" を指定し 1 回だけ実行
      */
     function fadeIn(targets, triggerEl, vars) {
-      var start = (vars && vars.start) || 'top 85%';
-      var end = vars && vars.end;
-      var x = (vars && vars.x) || 0;
-      var y = (vars && vars.y !== undefined) ? vars.y : 40;
+      var start    = (vars && vars.start) || 'top 85%';
+      var x        = (vars && vars.x) || 0;
+      var y        = (vars && vars.y !== undefined) ? vars.y : 40;
       var duration = (vars && vars.duration) || dur(0.8);
-      var delay = (vars && vars.delay) || 0;
-      var ease = (vars && vars.ease) || 'power3.out';
+      var delay    = (vars && vars.delay) || 0;
+      var ease     = (vars && vars.ease) || 'power3.out';
 
-      // 初期状態: 非表示 + オフセット
-      gsap.set(targets, { opacity: 0, y: y, x: x });
-
-      ScrollTrigger.create({
-        trigger: triggerEl || targets,
-        start: start,
-        end: end,
-        once: true,
-        onEnter: function () {
-          gsap.to(targets, {
-            opacity: 1,
-            y: 0,
-            x: 0,
-            duration: duration,
-            delay: delay,
-            ease: ease
-          });
+      gsap.from(targets, {
+        opacity: 0,
+        y: y,
+        x: x,
+        duration: duration,
+        delay: delay,
+        ease: ease,
+        scrollTrigger: {
+          trigger: triggerEl || targets,
+          start: start,
+          toggleActions: 'play none none none'
         }
       });
     }
 
     /**
      * 複数要素の順次フェードイン
-     * @param {string} selector - 対象セレクタ
-     * @param {Object} [vars]   - fadeIn オプション（staggerDelay で間隔指定、デフォルト 0.1s）
      */
     function staggerFadeIn(selector, vars) {
       var opts = vars || {};
@@ -565,7 +481,7 @@ $(function () {
       });
     }
 
-    // セクション番号（タイトルは initTextSplit で管理）
+    // セクション番号
     staggerFadeIn('.section__number', { staggerDelay: 0 });
 
     // About
@@ -589,8 +505,6 @@ $(function () {
   // =============================================
   // 7. ヘッダー / ページトップ / ナビ
   // =============================================
-
-  // スクロールイベントを requestAnimationFrame でスロットリング
   var scrollTicking = false;
   window.addEventListener('scroll', function () {
     if (!scrollTicking) {
@@ -608,11 +522,6 @@ $(function () {
     $pageTop.toggleClass('is-visible', scrollY > PAGE_TOP_SCROLL_THRESHOLD);
   }
 
-  // NOTE: visualViewport.resize リスナーは削除
-  // ignoreMobileResize: true で iOS アドレスバーの変化は無視するため、
-  // ここで refresh() すると逆にトリガー位置がずれてしまう
-
-  // ページトップボタン
   $pageTop.on('click', function () {
     gsap.to(window, {
       scrollTo: { y: 0, autoKill: false },
@@ -621,7 +530,6 @@ $(function () {
     });
   });
 
-  // ナビゲーション アクティブ（スクロールスパイ）
   var NAV_SECTIONS = ['#about', '#works', '#contact'];
 
   NAV_SECTIONS.forEach(function (id) {
@@ -642,12 +550,6 @@ $(function () {
   // =============================================
   // 8. ハンバーガーメニュー
   // =============================================
-
-  /**
-   * body のスクロールロックを管理するカウンター
-   * 複数のコンポーネント（メニュー・モーダル）が同時にロックを要求しても
-   * 全てが解除されるまで body の overflow を復元しない
-   */
   var scrollLockCount = 0;
 
   function lockScroll() {
@@ -686,7 +588,6 @@ $(function () {
     closeMenu();
   });
 
-  // ESC キーで閉じる（メニュー & モーダル共通）
   $(document).on('keydown', function (e) {
     if (e.key === 'Escape') {
       if ($modal.hasClass('is-active')) {
@@ -726,10 +627,8 @@ $(function () {
     var $btn   = $(this);
     var filter = $btn.data('filter');
 
-    // 同じボタンの連打を無視
     if ($btn.hasClass('is-active')) return;
 
-    // ボタンの active 切り替え
     $filterBtns.removeClass('is-active');
     $btn.addClass('is-active');
 
@@ -738,11 +637,9 @@ $(function () {
       var tags  = String($card.data('tags')).split(',');
       var shouldShow = (filter === 'all') || tags.indexOf(filter) !== -1;
 
-      // 進行中のアニメーションを即座に停止
       gsap.killTweensOf($card[0]);
 
       if (shouldShow) {
-        // 表示する — is-hidden 解除 & 必ず visible 状態にリセット
         $card.removeClass('is-hidden');
         gsap.to($card[0], {
           opacity: 1,
@@ -751,7 +648,6 @@ $(function () {
           ease: 'power2.out'
         });
       } else {
-        // 非表示にする（既に非表示なら何もしない）
         if ($card.hasClass('is-hidden')) return;
         gsap.to($card[0], {
           opacity: 0,
@@ -772,18 +668,12 @@ $(function () {
   var $lastDetailTrigger = null;
   var $modalContainer  = $modal.find('.modal__container');
 
-  /**
-   * モーダルを開く
-   * @param {jQuery} $card - 対象の work-card 要素
-   */
   function openModal($card) {
-    // データ注入（.text() でエスケープ済み）
     $('#js-modal-title').text($card.find('.work-card__title').text());
     $('#js-modal-role').text($card.data('detail-role'));
     $('#js-modal-period').text($card.data('detail-period'));
     $('#js-modal-point').text($card.data('detail-point'));
 
-    // タグ生成（XSS 安全: jQuery .text() で生成）
     var tags = String($card.data('tags')).split(',');
     var $tagsWrap = $('#js-modal-tags').empty();
     tags.forEach(function (t) {
@@ -793,39 +683,29 @@ $(function () {
     $modal.addClass('is-active').attr('aria-hidden', 'false');
     lockScroll();
 
-    // コンテナにフォーカスを移して Tab トラップを機能させる
     $modalContainer[0].focus();
   }
 
-  /**
-   * モーダルを閉じる
-   */
   function closeModal() {
     $modal.removeClass('is-active').attr('aria-hidden', 'true');
     unlockScroll();
 
-    // フォーカスを元のトリガーに戻す
     if ($lastDetailTrigger) {
       $lastDetailTrigger.trigger('focus');
       $lastDetailTrigger = null;
     }
   }
 
-  // Detail ボタンクリック
   $(document).on('click', '.js-work-detail', function () {
     $lastDetailTrigger = $(this);
     var $card = $(this).closest('.js-work-card');
     openModal($card);
   });
 
-  // モーダルを閉じる（オーバーレイ or 閉じるボタン）
   $(document).on('click', '.js-modal-close', function () {
     closeModal();
   });
 
-  /**
-   * モーダル内フォーカストラップ — Tab キーがモーダル外に漏れないようにする
-   */
   $modal.on('keydown', function (e) {
     if (e.key !== 'Tab') return;
 
@@ -836,13 +716,11 @@ $(function () {
     var $last  = $focusable.last();
 
     if (e.shiftKey) {
-      // Shift+Tab: 最初の要素にいたら最後へ
       if ($(document.activeElement).is($first) || $(document.activeElement).is($modalContainer)) {
         e.preventDefault();
         $last.trigger('focus');
       }
     } else {
-      // Tab: 最後の要素にいたら最初へ
       if ($(document.activeElement).is($last)) {
         e.preventDefault();
         $first.trigger('focus');
@@ -856,37 +734,28 @@ $(function () {
   var $contactForm = $('#js-contact-form');
   var emailRegex   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  /**
-   * フィールド単体バリデーション
-   * @param  {jQuery}  $field - バリデーション対象の input / textarea
-   * @return {boolean} バリデーション通過なら true
-   */
   function validateField($field) {
     var value      = $field.val().trim();
     var isRequired = $field.prop('required');
     var $error     = $field.siblings('.form-group__error');
 
-    // 必須チェック（空欄）
     if (isRequired && value === '') {
       $field.addClass('is-error');
       $error.text($field.data('error-empty') || '入力してください');
       return false;
     }
 
-    // メール形式チェック
     if ($field.attr('type') === 'email' && value !== '' && !emailRegex.test(value)) {
       $field.addClass('is-error');
       $error.text($field.data('error-format') || '正しいメールアドレスを入力してください');
       return false;
     }
 
-    // OK
     $field.removeClass('is-error');
     $error.text('');
     return true;
   }
 
-  // リアルタイムバリデーション（エラー表示中のフィールドのみ再検証）
   $contactForm.on('input', 'input, textarea', function () {
     var $el = $(this);
     if ($el.hasClass('is-error')) {
@@ -894,12 +763,10 @@ $(function () {
     }
   });
 
-  // blur 時バリデーション
   $contactForm.on('blur', 'input[required], textarea[required]', function () {
     validateField($(this));
   });
 
-  // 送信処理
   $contactForm.on('submit', function (e) {
     e.preventDefault();
 
@@ -921,14 +788,12 @@ $(function () {
     $btn.prop('disabled', true);
     $btn.find('span').text('送信中...');
 
-    // デモ用: 2 秒後に完了表示
     setTimeout(function () {
       $btn.find('span').text(originalText);
       $btn.prop('disabled', false);
       $('#js-form-success').text('送信が完了しました。ありがとうございます！');
       $contactForm[0].reset();
 
-      // エラー表示をクリア
       $contactForm.find('.is-error').removeClass('is-error');
       $contactForm.find('.form-group__error').text('');
 
@@ -939,7 +804,7 @@ $(function () {
   });
 
   // =============================================
-  // 13. カスタムカーソル（PC ホバー環境のみ）
+  // 13. カスタムカーソル（PC ホバー��境のみ）
   // =============================================
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     var $cursor = $('<div class="custom-cursor" aria-hidden="true"></div>');
@@ -954,7 +819,6 @@ $(function () {
       });
     }, { passive: true });
 
-    // イベント委任でホバー対象を管理
     $(document).on('mouseenter', 'a, button, .work-card', function () {
       $cursor.addClass('is-hover');
     }).on('mouseleave', 'a, button, .work-card', function () {
