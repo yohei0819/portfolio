@@ -30,9 +30,17 @@ $(function () {
   ScrollTrigger.config({ ignoreMobileResize: true });
 
   // prefers-reduced-motion を尊重
-  // true → DURATION = 0（即座に完了） / false → undefined（?? でデフォルト値を適用）
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const DURATION = prefersReducedMotion ? 0 : undefined;
+  // true → DURATION = 0（即座に完了） / false → undefined
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var DURATION = prefersReducedMotion ? 0 : undefined;
+
+  /**
+   * iOS 13.3 以前は ?? (nullish coalescing) 未対応のため
+   * DURATION が 0 のとき || だとフォールバックされてしまう問題を回避するヘルパー
+   */
+  function dur(fallback) {
+    return DURATION !== undefined ? DURATION : fallback;
+  }
 
   // DOM キャッシュ
   const $body       = $('body');
@@ -63,9 +71,13 @@ $(function () {
       initScrollAnimations();
 
       // モバイルブラウザではローダー除去後にレイアウトが変わるため
-      // ScrollTrigger の位置計算を再実行する
+      // ScrollTrigger の位置計算を再実行する（iOS Safari では 2 重 rAF + 遅延が必要）
       requestAnimationFrame(function () {
-        ScrollTrigger.refresh();
+        requestAnimationFrame(function () {
+          setTimeout(function () {
+            ScrollTrigger.refresh();
+          }, 100);
+        });
       });
     }
   });
@@ -73,12 +85,12 @@ $(function () {
   loaderTl
     .to('.loader__bar-fill', {
       width: '100%',
-      duration: DURATION ?? 1.5,
+      duration: dur(1.5),
       ease: 'power2.inOut'
     })
     .to('#js-loader', {
       yPercent: -100,
-      duration: DURATION ?? 0.8,
+      duration: dur(0.8),
       ease: 'power3.inOut',
       delay: 0.2
     })
@@ -92,29 +104,29 @@ $(function () {
 
     tl.from('.hero__name-line', {
         yPercent: 120,
-        duration: DURATION ?? 1,
+        duration: dur(1),
         stagger: 0.15
       })
       .to('.hero__greeting', {
         opacity: 1,
-        duration: DURATION ?? 0.6
+        duration: dur(0.6)
       }, '-=0.6')
       .to('#js-typing', {
         opacity: 1,
-        duration: DURATION ?? 0.3,
+        duration: dur(0.3),
         onComplete: startTyping
       }, '-=0.2')
       .to('.hero__description', {
         opacity: 1,
-        duration: DURATION ?? 0.6
+        duration: dur(0.6)
       }, '+=0.5')
       .to('.hero__cta', {
         opacity: 1,
-        duration: DURATION ?? 0.6
+        duration: dur(0.6)
       }, '-=0.3')
       .to('.hero__scroll-indicator', {
         opacity: 1,
-        duration: DURATION ?? 0.6
+        duration: dur(0.6)
       }, '-=0.3');
   }
 
@@ -477,7 +489,7 @@ $(function () {
           gsap.to(chars, {
             opacity: 1,
             y: 0,
-            duration: DURATION ?? 0.5,
+            duration: dur(0.5),
             stagger: 0.05,
             ease: 'power3.out'
           });
@@ -501,7 +513,7 @@ $(function () {
       var end = vars && vars.end;
       var x = (vars && vars.x) || 0;
       var y = (vars && vars.y !== undefined) ? vars.y : 40;
-      var duration = (vars && vars.duration) || (DURATION ?? 0.8);
+      var duration = (vars && vars.duration) || dur(0.8);
       var delay = (vars && vars.delay) || 0;
       var ease = (vars && vars.ease) || 'power3.out';
 
@@ -548,19 +560,19 @@ $(function () {
     // About
     fadeIn('.about__text', '.about__text', { x: -40, y: 0, start: 'top 80%' });
     fadeIn('.about__skills', '.about__skills', { x: 40, y: 0, delay: 0.2, start: 'top 80%' });
-    staggerFadeIn('.skill-card', { y: 20, duration: DURATION ?? 0.5, staggerDelay: 0.08 });
-    staggerFadeIn('.about__info-item', { x: -20, y: 0, duration: DURATION ?? 0.5 });
+    staggerFadeIn('.skill-card', { y: 20, duration: dur(0.5), staggerDelay: 0.08 });
+    staggerFadeIn('.about__info-item', { x: -20, y: 0, duration: dur(0.5) });
 
     // Timeline
-    staggerFadeIn('.timeline__item', { x: -30, y: 0, duration: DURATION ?? 0.6, staggerDelay: 0.15 });
+    staggerFadeIn('.timeline__item', { x: -30, y: 0, duration: dur(0.6), staggerDelay: 0.15 });
 
     // Works
-    fadeIn('.works-filter', '.works-filter', { y: 20, duration: DURATION ?? 0.5 });
+    fadeIn('.works-filter', '.works-filter', { y: 20, duration: dur(0.5) });
     staggerFadeIn('.work-card', { y: 60, staggerDelay: 0.15 });
 
     // Contact
-    fadeIn('.contact__lead', '.contact__lead', { y: 30, duration: DURATION ?? 0.6 });
-    staggerFadeIn('.form-group', { y: 30, duration: DURATION ?? 0.5 });
+    fadeIn('.contact__lead', '.contact__lead', { y: 30, duration: dur(0.6) });
+    staggerFadeIn('.form-group', { y: 30, duration: dur(0.5) });
   }
 
   // =============================================
@@ -585,23 +597,15 @@ $(function () {
     $pageTop.toggleClass('is-visible', scrollY > PAGE_TOP_SCROLL_THRESHOLD);
   }
 
-  // モバイルアドレスバーの表示/非表示でビューポートサイズが変わった際に
-  // ScrollTrigger の位置計算を更新する
-  if (window.visualViewport) {
-    let vpResizeTimer;
-    window.visualViewport.addEventListener('resize', function () {
-      clearTimeout(vpResizeTimer);
-      vpResizeTimer = setTimeout(function () {
-        ScrollTrigger.refresh();
-      }, 300);
-    });
-  }
+  // NOTE: visualViewport.resize リスナーは削除
+  // ignoreMobileResize: true で iOS アドレスバーの変化は無視するため、
+  // ここで refresh() すると逆にトリガー位置がずれてしまう
 
   // ページトップボタン
   $pageTop.on('click', function () {
     gsap.to(window, {
       scrollTo: { y: 0, autoKill: false },
-      duration: DURATION ?? 1,
+      duration: dur(1),
       ease: 'power3.inOut'
     });
   });
@@ -696,7 +700,7 @@ $(function () {
 
     gsap.to(window, {
       scrollTo: { y: $target.offset().top - HEADER_OFFSET, autoKill: false },
-      duration: DURATION ?? 1,
+      duration: dur(1),
       ease: 'power3.inOut'
     });
   });
@@ -732,7 +736,7 @@ $(function () {
         gsap.to($card[0], {
           opacity: 1,
           scale: 1,
-          duration: DURATION ?? 0.4,
+          duration: dur(0.4),
           ease: 'power2.out'
         });
       } else {
@@ -741,7 +745,7 @@ $(function () {
         gsap.to($card[0], {
           opacity: 0,
           scale: 0.9,
-          duration: DURATION ?? 0.3,
+          duration: dur(0.3),
           ease: 'power2.in',
           onComplete() {
             $card.addClass('is-hidden');

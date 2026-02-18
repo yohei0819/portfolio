@@ -69,7 +69,7 @@ body {
   background-color: var(--c-bg);
   color: var(--c-text);
   line-height: 1.8;
-  overflow-x: hidden;
+  /* overflow-x: hidden は iOS Safari で ScrollTrigger を壊すため使用しない */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -399,7 +399,6 @@ button {
 .hero {
   min-height: 100vh;
   min-height: 100dvh;
-  min-height: -webkit-fill-available;
   display: flex;
   align-items: center;
   justify-content: center;
