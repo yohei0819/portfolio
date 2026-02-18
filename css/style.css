@@ -61,6 +61,7 @@
 
 html {
   font-size: 16px;
+  overflow-x: hidden;
   /* scroll-behavior は GSAP ScrollToPlugin で制御するため設定しない */
 }
 
@@ -399,6 +400,7 @@ button {
 .hero {
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -700,6 +702,11 @@ button {
   display: block;
   color: inherit;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.work-card__link:active {
+  opacity: 0.85;
 }
 
 .work-card__overlay {
@@ -965,6 +972,7 @@ button {
   height: 100%;
   pointer-events: none;
   z-index: 0;
+  will-change: contents;
 }
 
 .hero__typing-cursor {

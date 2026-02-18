@@ -404,30 +404,22 @@ $(function () {
       resizeTimer = setTimeout(rebuild, 200);
     });
 
-    // 画面外では描画を停止してバッテリー節約
-    if ('IntersectionObserver' in window) {
-      var isVisible = true;
-      var observer = new IntersectionObserver(function (entries) {
-        isVisible = entries[0].isIntersecting;
-        if (isVisible && !animFrameId) {
+    // タブ非表示時は描画を停止してバッテリー節約
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        if (animFrameId) {
+          cancelAnimationFrame(animFrameId);
+          animFrameId = null;
+        }
+      } else {
+        if (!animFrameId) {
           animFrameId = requestAnimationFrame(draw);
         }
-      }, { threshold: 0.1 });
-      observer.observe(heroEl);
+      }
+    });
 
-      // draw 関数でスキップ判定
-      var origDraw = draw;
-      draw = function () {
-        if (!isVisible) {
-          animFrameId = null;
-          return;
-        }
-        origDraw();
-      };
-    }
-
-    // 初期化
-    rebuild();
+    // 初期化——レイアウト確定待ちのため少し遅延
+    setTimeout(rebuild, 50);
   }
 
   // =============================================
@@ -502,12 +494,12 @@ $(function () {
      * @param {Object}  [vars]           - tween プロパティ（start / end は scrollTrigger へ振り分け）
      */
     function fadeIn(targets, triggerEl, vars) {
-      const { start, end, staggerDelay, ...tweenVars } = vars || {};
+      const { start, end, staggerDelay, x, y, ...tweenVars } = vars || {};
 
-      // 初期状態を明示的にセットし、gsap.from のちらつきを防止
+      // 初期状態を明示的にセット
       gsap.set(targets, {
-        y: tweenVars.y !== undefined ? tweenVars.y : 40,
-        x: tweenVars.x || 0,
+        y: y !== undefined ? y : 40,
+        x: x || 0,
         opacity: 0
       });
 
@@ -523,8 +515,7 @@ $(function () {
         opacity: 1,
         duration: DURATION ?? 0.8,
         ease: 'power3.out',
-        ...tweenVars,
-        // tweenVars の y/x は初期セット用なので上書き
+        ...tweenVars
       });
     }
 
