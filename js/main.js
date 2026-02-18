@@ -26,6 +26,9 @@ $(function () {
   // =============================================
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
+  // iOS Safari 対応: アドレスバーの表示/非表示で ScrollTrigger が壊れるのを防止
+  ScrollTrigger.config({ ignoreMobileResize: true });
+
   // prefers-reduced-motion を尊重
   // true → DURATION = 0（即座に完了） / false → undefined（?? でデフォルト値を適用）
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -489,25 +492,37 @@ $(function () {
   function initScrollAnimations() {
     /**
      * スクロールトリガー付きフェードインヘルパー
-     * @param {string|Element} targets   - GSAP ターゲット
-     * @param {string|Element} triggerEl - ScrollTrigger のトリガー要素
-     * @param {Object}  [vars]           - tween プロパティ（start / end は scrollTrigger へ振り分け）
+     * gsap.set で初期状態をセットし、ScrollTrigger.create(once) で
+     * 画面内に入ったら gsap.to で表示するパターン。
+     * iOS Safari でも確実に動作する。
      */
     function fadeIn(targets, triggerEl, vars) {
-      const { start, end, staggerDelay, ...tweenVars } = vars || {};
+      var start = (vars && vars.start) || 'top 85%';
+      var end = vars && vars.end;
+      var x = (vars && vars.x) || 0;
+      var y = (vars && vars.y !== undefined) ? vars.y : 40;
+      var duration = (vars && vars.duration) || (DURATION ?? 0.8);
+      var delay = (vars && vars.delay) || 0;
+      var ease = (vars && vars.ease) || 'power3.out';
 
-      gsap.from(targets, {
-        scrollTrigger: {
-          trigger: triggerEl || targets,
-          start: start || 'top 85%',
-          end: end,
-          toggleActions: 'play none none none'
-        },
-        y: 40,
-        opacity: 0,
-        duration: DURATION ?? 0.8,
-        ease: 'power3.out',
-        ...tweenVars
+      // 初期状態: 非表示 + オフセット
+      gsap.set(targets, { opacity: 0, y: y, x: x });
+
+      ScrollTrigger.create({
+        trigger: triggerEl || targets,
+        start: start,
+        end: end,
+        once: true,
+        onEnter: function () {
+          gsap.to(targets, {
+            opacity: 1,
+            y: 0,
+            x: 0,
+            duration: duration,
+            delay: delay,
+            ease: ease
+          });
+        }
       });
     }
 
