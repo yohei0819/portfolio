@@ -88,32 +88,35 @@ $(function () {
   function initHeroAnimation() {
     var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-    tl.from('.hero__name-line', {
-        yPercent: 120,
-        duration: dur(1),
-        stagger: 0.15
-      })
-      .to('.hero__greeting', {
-        opacity: 1,
-        duration: dur(0.6)
-      }, '-=0.6')
-      .to('#js-typing', {
-        opacity: 1,
-        duration: dur(0.3),
-        onComplete: startTyping
-      }, '-=0.2')
-      .to('.hero__description', {
-        opacity: 1,
-        duration: dur(0.6)
-      }, '+=0.5')
-      .to('.hero__cta', {
-        opacity: 1,
-        duration: dur(0.6)
-      }, '-=0.3')
-      .to('.hero__scroll-indicator', {
-        opacity: 1,
-        duration: dur(0.6)
-      }, '-=0.3');
+    tl.fromTo('.hero__name-line',
+        { yPercent: 120, opacity: 0 },
+        { yPercent: 0, opacity: 1, duration: dur(1), stagger: 0.15 }
+      )
+      .fromTo('.hero__greeting',
+        { opacity: 0 },
+        { opacity: 1, duration: dur(0.6) },
+        '-=0.6'
+      )
+      .fromTo('#js-typing',
+        { opacity: 0 },
+        { opacity: 1, duration: dur(0.3), onComplete: startTyping },
+        '-=0.2'
+      )
+      .fromTo('.hero__description',
+        { opacity: 0 },
+        { opacity: 1, duration: dur(0.6) },
+        '+=0.5'
+      )
+      .fromTo('.hero__cta',
+        { opacity: 0 },
+        { opacity: 1, duration: dur(0.6) },
+        '-=0.3'
+      )
+      .fromTo('.hero__scroll-indicator',
+        { opacity: 0 },
+        { opacity: 1, duration: dur(0.6) },
+        '-=0.3'
+      );
   }
 
   function startTyping() {
@@ -407,22 +410,22 @@ $(function () {
       el.innerHTML = html;
 
       var chars = el.querySelectorAll('.split-char');
-      gsap.set(chars, { opacity: 0, y: 20 });
 
-      ScrollTrigger.create({
-        trigger: el,
-        start: 'top 85%',
-        once: true,
-        onEnter: function () {
-          gsap.to(chars, {
-            opacity: 1,
-            y: 0,
-            duration: dur(0.5),
-            stagger: 0.05,
-            ease: 'power3.out'
-          });
+      gsap.fromTo(chars,
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: dur(0.5),
+          stagger: 0.05,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
         }
-      });
+      );
     });
   }
 

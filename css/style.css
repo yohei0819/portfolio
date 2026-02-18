@@ -445,6 +445,7 @@ button {
 .hero__name-line {
   display: block;
   overflow: hidden;
+  opacity: 0;
 }
 
 .hero__title {
@@ -996,6 +997,7 @@ button {
    ============================================ */
 .split-char {
   display: inline-block;
+  opacity: 0;
 }
 
 /* ============================================
