@@ -39,28 +39,48 @@ $(function () {
   // =============================================
   // 2. ローディング
   // =============================================
+  
+  // アニメーション対象要素の初期状態を設定（CSS から削除した opacity: 0 を JS で管理）
+  gsap.set([
+    '.hero__greeting', '.hero__name-line', '.hero__title',
+    '.hero__description', '.hero__cta', '.hero__scroll-indicator',
+    '.section__number', '.about__text', '.about__skills',
+    '.about__info-item', '.skill-card', '.work-card',
+    '.contact__lead', '.form-group', '.timeline__item',
+    '.works-filter'
+  ], { opacity: 0 });
+
+  // ローダー完了とページロード完了の両方を待ってからアニメーション初期化
+  var isLoaderDone = false;
+  var isPageLoaded = false;
+
+  function tryInitAnimations() {
+    if (!isLoaderDone || !isPageLoaded) return;
+    
+    initHeroAnimation();
+    initParticles();
+    initTextSplit();
+    initScrollAnimations();
+
+    // iOS Safari 用に refresh を複数回実行して確実にする
+    ScrollTrigger.refresh(true);
+
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        ScrollTrigger.refresh(true);
+      });
+    });
+
+    // さらに遅延して最終 refresh（lazy 画像対策も兼ねる）
+    setTimeout(function () {
+      ScrollTrigger.refresh(true);
+    }, 500);
+  }
+
   var loaderTl = gsap.timeline({
     onComplete: function () {
-      initHeroAnimation();
-      initParticles();
-      initTextSplit();
-      initScrollAnimations();
-
-      // 【修正】iOS Safari 用に refresh を複数回実行して確実にする
-      ScrollTrigger.refresh();
-
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          setTimeout(function () {
-            ScrollTrigger.refresh();
-          }, 200);
-        });
-      });
-
-      // 【追加】さらに遅延して最終 refresh（lazy 画像対策も兼ねる）
-      setTimeout(function () {
-        ScrollTrigger.refresh();
-      }, 1000);
+      isLoaderDone = true;
+      tryInitAnimations();
     }
   });
 
@@ -79,8 +99,28 @@ $(function () {
     .set('#js-loader', { display: 'none' });
 
   window.addEventListener('load', function () {
-    ScrollTrigger.refresh();
+    isPageLoaded = true;
+    tryInitAnimations();
+    ScrollTrigger.refresh(true);
   });
+
+  // フォールバックタイマー: 5秒後にまだ opacity: 0 の要素があれば強制表示
+  setTimeout(function () {
+    var hiddenElements = document.querySelectorAll(
+      '.hero__greeting, .hero__name-line, .hero__description, ' +
+      '.hero__cta, .hero__scroll-indicator, .section__number, ' +
+      '.about__text, .about__skills, .about__info-item, ' +
+      '.skill-card, .work-card, .contact__lead, .form-group, ' +
+      '.timeline__item, .works-filter, .split-char'
+    );
+    hiddenElements.forEach(function (el) {
+      var computedOpacity = parseFloat(getComputedStyle(el).opacity);
+      if (computedOpacity === 0) {
+        gsap.set(el, { opacity: 1, y: 0, x: 0 });
+      }
+    });
+    ScrollTrigger.refresh(true);
+  }, 5000);
 
   // =============================================
   // 3. ヒーローアニメーション + タイピング
