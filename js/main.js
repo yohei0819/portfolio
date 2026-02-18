@@ -27,6 +27,7 @@ $(function () {
   // 定数
   var HEADER_SCROLL_THRESHOLD   = 80;
   var PAGE_TOP_SCROLL_THRESHOLD = 400;
+  var FALLBACK_TIMEOUT_MS       = 5000;
 
   var HEADER_OFFSET = parseInt(
     getComputedStyle(document.documentElement).getPropertyValue('--header-height'), 10
@@ -113,7 +114,7 @@ $(function () {
     ScrollTrigger.refresh(true);
   });
 
-  // フォールバックタイマー: 5秒後にまだ opacity: 0 の要素があれば強制表示
+  // フォールバックタイマー: 指定時間後にまだ opacity: 0 の要素があれば強制表示
   setTimeout(function () {
     // ANIMATION_TARGETS に split-char を追加（initTextSplit で動的に生成される）
     var fallbackSelectors = ANIMATION_TARGETS.concat(['.split-char']);
@@ -135,7 +136,7 @@ $(function () {
       gsap.set(elementsToShow, { opacity: 1, y: 0, x: 0 });
       ScrollTrigger.refresh(true);
     }
-  }, 5000);
+  }, FALLBACK_TIMEOUT_MS);
 
   // =============================================
   // 3. ヒーローアニメーション + タイピング
