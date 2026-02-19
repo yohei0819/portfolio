@@ -42,6 +42,10 @@ $(function () {
     return DURATION !== undefined ? DURATION : fallback;
   }
 
+  // モバイル判定（スマホのみ。タブレットは含まない）
+  var isMobile = /Android|iPhone|iPod/i.test(navigator.userAgent)
+                || (navigator.maxTouchPoints > 1 && window.innerWidth <= 768);
+
   // DOM キャッシュ
   var $body       = $('body');
   var $header     = $('#js-header');
@@ -61,24 +65,55 @@ $(function () {
   ) || 80;
 
   // =============================================
-  // 2. ローディング
+  // 2. モバイル用即時表示 — GSAP アニメーションを全スキップ
+  // =============================================
+  function revealAllForMobile() {
+    // ヒーロー要素（CSS で opacity: 0 が設定されている）
+    var heroSelectors = [
+      '.hero__greeting',
+      '.hero__title',
+      '#js-typing',
+      '.hero__description',
+      '.hero__cta',
+      '.hero__scroll-indicator'
+    ];
+    heroSelectors.forEach(function (sel) {
+      var el = document.querySelector(sel);
+      if (el) el.style.opacity = '1';
+    });
+
+    // hero__name-line の yPercent を解除
+    document.querySelectorAll('.hero__name-line').forEach(function (el) {
+      el.style.transform = 'none';
+    });
+  }
+
+  // =============================================
+  // 3. ローディング
   // =============================================
   var loaderTl = gsap.timeline({
     onComplete: function () {
-      initHeroAnimation();
-      initParticles();
-      initTextSplit();
-      initScrollAnimations();
+      if (isMobile) {
+        // モバイル: GSAP アニメーションを全てスキップし、要素を即表示
+        revealAllForMobile();
+        initParticles();
+        startTyping();
+      } else {
+        initHeroAnimation();
+        initParticles();
+        initTextSplit();
+        initScrollAnimations();
 
-      // モバイルブラウザではローダー除去後にレイアウトが変わるため
-      // ScrollTrigger の位置計算を再実行する（iOS Safari では 2 重 rAF + 遅延が必要）
-      requestAnimationFrame(function () {
+        // モバイルブラウザではローダー除去後にレイアウトが変わるため
+        // ScrollTrigger の位置計算を再実行する（iOS Safari では 2 重 rAF + 遅延が必要）
         requestAnimationFrame(function () {
-          setTimeout(function () {
-            ScrollTrigger.refresh();
-          }, 100);
+          requestAnimationFrame(function () {
+            setTimeout(function () {
+              ScrollTrigger.refresh();
+            }, 100);
+          });
         });
-      });
+      }
     }
   });
 
@@ -99,7 +134,7 @@ $(function () {
   // lazy 画像の読み込み完了後に ScrollTrigger の位置を再計算
   // loading="lazy" の画像はローダー完了時点でまだ読み込まれていない可能性がある
   window.addEventListener('load', function () {
-    ScrollTrigger.refresh();
+    if (!isMobile) ScrollTrigger.refresh();
   });
 
   // =============================================
@@ -613,25 +648,47 @@ $(function () {
 
   // ページトップボタン
   $pageTop.on('click', function () {
-    gsap.to(window, {
-      scrollTo: { y: 0, autoKill: false },
-      duration: dur(1),
-      ease: 'power3.inOut'
-    });
+    if (isMobile) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      gsap.to(window, {
+        scrollTo: { y: 0, autoKill: false },
+        duration: dur(1),
+        ease: 'power3.inOut'
+      });
+    }
   });
 
   // ナビゲーション アクティブ（スクロールスパイ）
   var NAV_SECTIONS = ['#about', '#works', '#contact'];
 
-  NAV_SECTIONS.forEach(function (id) {
-    ScrollTrigger.create({
-      trigger: id,
-      start: 'top center',
-      end: 'bottom center',
-      onEnter: function ()     { setActiveNav(id); },
-      onEnterBack: function () { setActiveNav(id); }
+  if (isMobile) {
+    // モバイル: IntersectionObserver で代替
+    if ('IntersectionObserver' in window) {
+      var navObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            setActiveNav('#' + entry.target.id);
+          }
+        });
+      }, { rootMargin: '-50% 0px -50% 0px' });
+
+      NAV_SECTIONS.forEach(function (id) {
+        var el = document.querySelector(id);
+        if (el) navObserver.observe(el);
+      });
+    }
+  } else {
+    NAV_SECTIONS.forEach(function (id) {
+      ScrollTrigger.create({
+        trigger: id,
+        start: 'top center',
+        end: 'bottom center',
+        onEnter: function ()     { setActiveNav(id); },
+        onEnterBack: function () { setActiveNav(id); }
+      });
     });
-  });
+  }
 
   function setActiveNav(id) {
     $navLinks.removeClass('is-active');
@@ -708,11 +765,18 @@ $(function () {
     var $target = $(href);
     if (!$target.length) return;
 
-    gsap.to(window, {
-      scrollTo: { y: $target.offset().top - HEADER_OFFSET, autoKill: false },
-      duration: dur(1),
-      ease: 'power3.inOut'
-    });
+    if (isMobile) {
+      window.scrollTo({
+        top: $target.offset().top - HEADER_OFFSET,
+        behavior: 'smooth'
+      });
+    } else {
+      gsap.to(window, {
+        scrollTo: { y: $target.offset().top - HEADER_OFFSET, autoKill: false },
+        duration: dur(1),
+        ease: 'power3.inOut'
+      });
+    }
   });
 
   // =============================================
@@ -737,30 +801,39 @@ $(function () {
       var tags  = String($card.data('tags')).split(',');
       var shouldShow = (filter === 'all') || tags.indexOf(filter) !== -1;
 
-      // 進行中のアニメーションを即座に停止
-      gsap.killTweensOf($card[0]);
-
-      if (shouldShow) {
-        // 表示する — is-hidden 解除 & 必ず visible 状態にリセット
-        $card.removeClass('is-hidden');
-        gsap.to($card[0], {
-          opacity: 1,
-          scale: 1,
-          duration: dur(0.4),
-          ease: 'power2.out'
-        });
+      if (isMobile) {
+        // モバイル: GSAP なしで即切替
+        if (shouldShow) {
+          $card.removeClass('is-hidden').css({ opacity: 1, transform: 'scale(1)' });
+        } else {
+          $card.addClass('is-hidden').css({ opacity: 0, transform: 'scale(0.9)' });
+        }
       } else {
-        // 非表示にする（既に非表示なら何もしない）
-        if ($card.hasClass('is-hidden')) return;
-        gsap.to($card[0], {
-          opacity: 0,
-          scale: 0.9,
-          duration: dur(0.3),
-          ease: 'power2.in',
-          onComplete: function () {
-            $card.addClass('is-hidden');
-          }
-        });
+        // 進行中のアニメーションを即座に停止
+        gsap.killTweensOf($card[0]);
+
+        if (shouldShow) {
+          // 表示する — is-hidden 解除 & 必ず visible 状態にリセット
+          $card.removeClass('is-hidden');
+          gsap.to($card[0], {
+            opacity: 1,
+            scale: 1,
+            duration: dur(0.4),
+            ease: 'power2.out'
+          });
+        } else {
+          // 非表示にする（既に非表示なら何もしない）
+          if ($card.hasClass('is-hidden')) return;
+          gsap.to($card[0], {
+            opacity: 0,
+            scale: 0.9,
+            duration: dur(0.3),
+            ease: 'power2.in',
+            onComplete: function () {
+              $card.addClass('is-hidden');
+            }
+          });
+        }
       }
     });
   });
