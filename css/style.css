@@ -740,11 +740,19 @@ button {
   line-height: 1.8;
 }
 
-.work-card__github {
+.work-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
   padding: 0 var(--sp-lg) var(--sp-lg);
 }
 
-.work-card__github a {
+.work-card > .work-card__github {
+  padding: 0 var(--sp-lg) var(--sp-lg);
+}
+
+.work-card__github a,
+.work-card__demo a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -755,8 +763,22 @@ button {
   transition: color var(--transition);
 }
 
-.work-card__github a:hover {
+.work-card__github a:hover,
+.work-card__demo a:hover {
   color: var(--c-accent);
+}
+
+.work-card__demo a {
+  padding: 4px 12px;
+  border: 1px solid var(--c-accent);
+  border-radius: 4px;
+  color: var(--c-accent);
+  font-size: 0.8125rem;
+}
+
+.work-card__demo a:hover {
+  background: var(--c-accent);
+  color: #fff;
 }
 
 /* ============================================
