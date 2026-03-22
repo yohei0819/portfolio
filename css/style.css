@@ -741,7 +741,7 @@ button {
 }
 
 .work-card__github {
-  padding: 0 var(--sp-lg) var(--sp-md);
+  padding: 0 var(--sp-lg) var(--sp-lg);
 }
 
 .work-card__github a {
