@@ -740,6 +740,25 @@ button {
   line-height: 1.8;
 }
 
+.work-card__github {
+  padding: 0 var(--sp-lg) var(--sp-md);
+}
+
+.work-card__github a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ff-en);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--c-text-muted);
+  transition: color var(--transition);
+}
+
+.work-card__github a:hover {
+  color: var(--c-accent);
+}
+
 /* ============================================
    12. Contact / フォーム
    ============================================ */
