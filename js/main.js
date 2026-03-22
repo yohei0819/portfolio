@@ -4,18 +4,19 @@
  *
  * 構成:
  *   1.  初期設定
- *   2.  ローディング
- *   3.  ヒーローアニメーション + タイピング
- *   4.  パーティクル背景（マウスインタラクション対応）
- *   5.  テキストスプリットアニメーション
- *   6.  スクロールアニメーション
- *   7.  ヘッダー / ページトップ / ナビ
- *   8.  ハンバーガーメニュー
- *   9.  スムーススクロール
- *   10. Works フィルター
- *   11. Works モーダル
- *   12. フォームバリデーション
- *   13. カスタムカーソル
+ *   2.  モバイル用即時表示
+ *   3.  ローディング
+ *   4.  ヒーローアニメーション + タイピング
+ *   5.  パーティクル背景（マウスインタラクション対応）
+ *   6.  テキストスプリットアニメーション
+ *   7.  スクロールアニメーション
+ *   8.  ヘッダー / ページトップ / ナビ
+ *   9.  ハンバーガーメニュー
+ *   10. スムーススクロール
+ *   11. Works フィルター
+ *   12. Works モーダル
+ *   13. フォームバリデーション
+ *   14. カスタムカーソル
  */
 
 $(function () {
@@ -138,7 +139,7 @@ $(function () {
   });
 
   // =============================================
-  // 3. ヒーローアニメーション + タイピング
+  // 4. ヒーローアニメーション + タイピング
   // =============================================
   function initHeroAnimation() {
     var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -202,7 +203,7 @@ $(function () {
   }
 
   // =============================================
-  // 4. パーティクル背景
+  // 5. パーティクル背景
   // =============================================
   function initParticles() {
     var canvas = document.getElementById('js-particles');
@@ -215,21 +216,21 @@ $(function () {
     var particles  = [];
     var animFrameId = null;
 
-    // モバイル判定
-    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-                  || (navigator.maxTouchPoints > 1 && window.innerWidth <= 900);
+    // パーティクル用モバイル判定（iPad 含む・外側の isMobile とは閾値が異なる）
+    var isLowPerfDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                        || (navigator.maxTouchPoints > 1 && window.innerWidth <= 900);
 
     // --- 設定定数 ---
     var CONFIG = {
-      count:        isMobile ? 50 : 200,     // パーティクル数（モバイルは軽量化）
-      connectDist:  isMobile ? 80 : 120,     // パーティクル間の接続距離
-      maxSpeed:     isMobile ? 0.8 : 1.2,    // 基本最大速度
+      count:        isLowPerfDevice ? 50 : 200,     // パーティクル数（モバイルは軽量化）
+      connectDist:  isLowPerfDevice ? 80 : 120,     // パーティクル間の接続距離
+      maxSpeed:     isLowPerfDevice ? 0.8 : 1.2,    // 基本最大速度
       friction:     0.98,         // 摩擦係数（1 に近いほど滑らか）
       driftThresh:  0.5,          // 最低速度の閾値（maxSpeed の倍率）
       driftForce:   0.3,          // 停滞時に加えるランダム力
       radiusRestore: 0.05,        // 半径の復元速度
 
-      dotAlpha:     isMobile ? 0.6 : 0.4,    // パーティクルの基本透明度
+      dotAlpha:     isLowPerfDevice ? 0.6 : 0.4,    // パーティクルの基本透明度
       lineAlpha:    0.15,         // 接続線の基本透明度
 
       mouse: {
@@ -300,7 +301,7 @@ $(function () {
 
       particles = [];
       for (var i = 0; i < CONFIG.count; i++) {
-        var r = isMobile
+        var r = isLowPerfDevice
           ? Math.random() * 2 + 1        // モバイル: 1〜3px（視認性向上）
           : Math.random() * 1.5 + 0.5;   // PC: 0.5〜2px
         particles.push({
@@ -479,7 +480,7 @@ $(function () {
   }
 
   // =============================================
-  // 5. テキストスプリットアニメーション
+  // 6. テキストスプリットアニメーション
   // =============================================
 
   /**
@@ -540,7 +541,7 @@ $(function () {
   }
 
   // =============================================
-  // 6. スクロールアニメーション
+  // 7. スクロールアニメーション
   // =============================================
   function initScrollAnimations() {
     /**
@@ -621,7 +622,7 @@ $(function () {
   }
 
   // =============================================
-  // 7. ヘッダー / ページトップ / ナビ
+  // 8. ヘッダー / ページトップ / ナビ
   // =============================================
 
   // スクロールイベントを requestAnimationFrame でスロットリング
@@ -696,7 +697,7 @@ $(function () {
   }
 
   // =============================================
-  // 8. ハンバーガーメニュー
+  // 9. ハンバーガーメニュー
   // =============================================
 
   /**
@@ -755,7 +756,7 @@ $(function () {
   });
 
   // =============================================
-  // 9. スムーススクロール
+  // 10. スムーススクロール
   // =============================================
   $(document).on('click', 'a[href^="#"]', function (e) {
     var href = $(this).attr('href');
@@ -780,7 +781,7 @@ $(function () {
   });
 
   // =============================================
-  // 10. Works フィルター
+  // 11. Works フィルター
   // =============================================
   var $filterBtns = $('#js-works-filter .works-filter__btn');
   var $workCards  = $('.js-work-card');
@@ -839,7 +840,7 @@ $(function () {
   });
 
   // =============================================
-  // 11. Works モーダル
+  // 12. Works モーダル
   // =============================================
   var $lastDetailTrigger = null;
   var $modalContainer  = $modal.find('.modal__container');
@@ -923,7 +924,7 @@ $(function () {
   });
 
   // =============================================
-  // 12. フォームバリデーション
+  // 13. フォームバリデーション
   // =============================================
   var $contactForm = $('#js-contact-form');
   var emailRegex   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1011,7 +1012,7 @@ $(function () {
   });
 
   // =============================================
-  // 13. カスタムカーソル（PC ホバー環境のみ）
+  // 14. カスタムカーソル（PC ホバー環境のみ）
   // =============================================
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     var $cursor = $('<div class="custom-cursor" aria-hidden="true"></div>');

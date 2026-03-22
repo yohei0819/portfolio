@@ -667,24 +667,6 @@ button {
   background: var(--c-bg);
 }
 
-.work-card__placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #0d1117, #161b22);
-  border-bottom: 1px solid var(--c-border);
-}
-
-.work-card__placeholder span {
-  font-family: var(--ff-en);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--c-border-light);
-  letter-spacing: 0.1em;
-}
-
 .work-card__thumb {
   width: 100%;
   height: 100%;
@@ -1425,7 +1407,7 @@ button {
 }
 
 /* ============================================
-   23-b. モバイル: GSAP アニメーション無効時の即時表示
+   23. モバイル: GSAP アニメーション無効時の即時表示
    ============================================ */
 @media (max-width: 768px) {
   .hero__greeting,
@@ -1438,7 +1420,7 @@ button {
 }
 
 /* ============================================
-   23. プリントスタイル
+   24. プリントスタイル
    ============================================ */
 @media print {
   .header,
