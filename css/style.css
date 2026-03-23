@@ -445,6 +445,7 @@ button {
 .hero__name-line {
   display: block;
   overflow: hidden;
+  transform: translateY(120%);
 }
 
 .hero__title {
