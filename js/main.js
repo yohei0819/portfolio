@@ -90,6 +90,29 @@ $(function () {
   }
 
   // =============================================
+  // 2-b. スクロールアニメーション対象の事前非表示
+  //      ローダーが退場する前に非表示にしておくことで、
+  //      ローダー消失直後に要素が一瞬見えてから下がる現象を防止
+  // =============================================
+  function presetScrollTargets() {
+    gsap.set('.section__number', { opacity: 0, y: 40 });
+    gsap.set('.about__text',     { opacity: 0, x: -40 });
+    gsap.set('.about__skills',   { opacity: 0, x: 40 });
+    gsap.set('.skill-card',      { opacity: 0, y: 20 });
+    gsap.set('.about__info-item',{ opacity: 0, x: -20 });
+    gsap.set('.timeline__item',  { opacity: 0, x: -30 });
+    gsap.set('.works-filter',    { opacity: 0, y: 20 });
+    gsap.set('.work-card',       { opacity: 0, y: 60 });
+    gsap.set('.contact__lead',   { opacity: 0, y: 30 });
+    gsap.set('.form-group',      { opacity: 0, y: 30 });
+  }
+
+  // PC のみ: ローダー退場前に事前非表示を適用
+  if (!isMobile) {
+    presetScrollTargets();
+  }
+
+  // =============================================
   // 3. ローディング
   // =============================================
   var loaderTl = gsap.timeline({
@@ -559,8 +582,7 @@ $(function () {
       var delay = (vars && vars.delay) || 0;
       var ease = (vars && vars.ease) || 'power3.out';
 
-      // 初期状態: 非表示 + オフセット
-      gsap.set(targets, { opacity: 0, y: y, x: x });
+      // 初期状態は presetScrollTargets() でローダー前に設定済みのため、gsap.set は不要
 
       ScrollTrigger.create({
         trigger: triggerEl || targets,
