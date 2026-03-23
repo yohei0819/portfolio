@@ -96,7 +96,7 @@ $(function () {
   // =============================================
   function presetScrollTargets() {
     // ヒーロー要素（ローダーの後ろで見えないように事前に非表示）
-    gsap.set('.hero__name-inner', { yPercent: 120 });
+    gsap.set('.hero__name-inner', { y: 0, yPercent: 120 });
 
     // スクロールアニメーション対象
     gsap.set('.section__number', { opacity: 0, y: 40 });
@@ -172,7 +172,7 @@ $(function () {
     var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
     tl.fromTo('.hero__name-inner',
-        { yPercent: 120 },
+        { y: 0, yPercent: 120 },
         {
           yPercent: 0,
           duration: dur(1),
