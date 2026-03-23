@@ -245,7 +245,7 @@ $(function () {
 
     // --- 設定定数 ---
     var CONFIG = {
-      count:        isLowPerfDevice ? 50 : 200,     // パーティクル数（モバイルは軽量化）
+      count:        isLowPerfDevice ? 40 : 120,     // パーティクル数
       connectDist:  isLowPerfDevice ? 80 : 120,     // パーティクル間の接続距離
       maxSpeed:     isLowPerfDevice ? 0.8 : 1.2,    // 基本最大速度
       friction:     0.98,         // 摩擦係数（1 に近いほど滑らか）
@@ -267,19 +267,58 @@ $(function () {
       }
     };
 
+    // 接続距離の二乗（sqrt を省くため事前計算）
+    var connectDistSq = CONFIG.connectDist * CONFIG.connectDist;
+    var mouseLineDistSq = CONFIG.mouse.lineDist * CONFIG.mouse.lineDist;
+    var mouseRadiusSq = CONFIG.mouse.radius * CONFIG.mouse.radius;
+
     // アクセントカラー（RGB）
     var ACCENT_RGB = '0,212,255';
 
     // マウス座標（CSS ピクセル座標、heroEl 相対）
     var mouse = { x: -9999, y: -9999, active: false };
 
+    // --- 空間グリッド（O(n²) → 近傍探索で高速化） ---
+    var gridCellSize = CONFIG.connectDist;  // セルサイズ = 接続距離
+    var gridCols = 0;
+    var gridRows = 0;
+    var grid = [];
+
+    /** グリッドを構築 */
+    function buildGrid(w, h) {
+      gridCols = Math.ceil(w / gridCellSize) || 1;
+      gridRows = Math.ceil(h / gridCellSize) || 1;
+      var totalCells = gridCols * gridRows;
+
+      // 配列を再利用（長さが足りなければ拡張）
+      if (grid.length < totalCells) {
+        grid = new Array(totalCells);
+        for (var i = 0; i < totalCells; i++) grid[i] = [];
+      } else {
+        for (var i = 0; i < totalCells; i++) {
+          if (!grid[i]) grid[i] = [];
+          else grid[i].length = 0;
+        }
+      }
+
+      // パーティクルをセルに振り分け
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+        var col = Math.min(Math.floor(p.x / gridCellSize), gridCols - 1);
+        var row = Math.min(Math.floor(p.y / gridCellSize), gridRows - 1);
+        if (col < 0) col = 0;
+        if (row < 0) row = 0;
+        grid[row * gridCols + col].push(i);
+      }
+    }
+
     // --- ユーティリティ ---
 
-    /** 2 点間の距離を算出 */
-    function distance(ax, ay, bx, by) {
+    /** 2 点間の距離の二乗を算出（sqrt 不要な比較用） */
+    function distanceSq(ax, ay, bx, by) {
       var dx = ax - bx;
       var dy = ay - by;
-      return Math.sqrt(dx * dx + dy * dy);
+      return dx * dx + dy * dy;
     }
 
     /** アクセントカラーの rgba 文字列を返す */
@@ -287,33 +326,21 @@ $(function () {
       return 'rgba(' + ACCENT_RGB + ',' + alpha + ')';
     }
 
-    /** 2 点間に接続線を描画する（距離がしきい値以内の場合のみ） */
-    function drawLine(x1, y1, x2, y2, dist, maxDist, baseAlpha, width) {
-      if (dist >= maxDist) return;
-      var alpha = (1 - dist / maxDist) * baseAlpha;
-      ctx.strokeStyle = rgba(alpha);
-      ctx.lineWidth   = width;
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-    }
-
     // --- コア処理 ---
 
     /** キャンバスサイズを親要素に合わせる（Retina 対応） */
     function resize() {
-      var dpr = Math.min(window.devicePixelRatio || 1, 2); // dpr上限2で省メモリ化
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
       var w   = heroEl.offsetWidth;
       var h   = heroEl.offsetHeight;
 
-      if (w === 0 || h === 0) return; // レイアウト未確定なら何もしない
+      if (w === 0 || h === 0) return;
 
       canvas.width        = w * dpr;
       canvas.height       = h * dpr;
       canvas.style.width  = w + 'px';
       canvas.style.height = h + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 累積しないようリセット+スケール
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     /** パーティクルを生成（CSS ピクセル座標で管理） */
@@ -325,8 +352,8 @@ $(function () {
       particles = [];
       for (var i = 0; i < CONFIG.count; i++) {
         var r = isLowPerfDevice
-          ? Math.random() * 2 + 1        // モバイル: 1〜3px（視認性向上）
-          : Math.random() * 1.5 + 0.5;   // PC: 0.5〜2px
+          ? Math.random() * 2 + 1
+          : Math.random() * 1.5 + 0.5;
         particles.push({
           x: Math.random() * w,
           y: Math.random() * h,
@@ -338,14 +365,61 @@ $(function () {
       }
     }
 
-    /** パーティクル同士の接続線を描画 */
+    /** パーティクル同士の接続線を描画（空間グリッドで高速化） */
     function drawParticleLinks() {
-      for (var i = 0; i < particles.length; i++) {
-        for (var j = i + 1; j < particles.length; j++) {
-          var a = particles[i];
-          var b = particles[j];
-          var dist = distance(a.x, a.y, b.x, b.y);
-          drawLine(a.x, a.y, b.x, b.y, dist, CONFIG.connectDist, CONFIG.lineAlpha, 0.5);
+      ctx.lineWidth = 0.5;
+      // 各セルについて、自セル内 + 右・下・右下の隣接セルのペアのみ検査
+      for (var row = 0; row < gridRows; row++) {
+        for (var col = 0; col < gridCols; col++) {
+          var cellIdx = row * gridCols + col;
+          var cell = grid[cellIdx];
+          if (!cell || cell.length === 0) continue;
+
+          // 自セル内のペア
+          for (var ci = 0; ci < cell.length; ci++) {
+            var a = particles[cell[ci]];
+            for (var cj = ci + 1; cj < cell.length; cj++) {
+              var b = particles[cell[cj]];
+              var dSq = distanceSq(a.x, a.y, b.x, b.y);
+              if (dSq < connectDistSq) {
+                var alpha = (1 - Math.sqrt(dSq) / CONFIG.connectDist) * CONFIG.lineAlpha;
+                ctx.strokeStyle = rgba(alpha);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+              }
+            }
+          }
+
+          // 隣接セル（右、下、右下、左下）とのペア
+          var neighbors = [];
+          if (col + 1 < gridCols) neighbors.push(row * gridCols + col + 1);
+          if (row + 1 < gridRows) {
+            neighbors.push((row + 1) * gridCols + col);
+            if (col + 1 < gridCols) neighbors.push((row + 1) * gridCols + col + 1);
+            if (col - 1 >= 0)       neighbors.push((row + 1) * gridCols + col - 1);
+          }
+
+          for (var ni = 0; ni < neighbors.length; ni++) {
+            var ncell = grid[neighbors[ni]];
+            if (!ncell || ncell.length === 0) continue;
+            for (var ci = 0; ci < cell.length; ci++) {
+              var a = particles[cell[ci]];
+              for (var nj = 0; nj < ncell.length; nj++) {
+                var b = particles[ncell[nj]];
+                var dSq = distanceSq(a.x, a.y, b.x, b.y);
+                if (dSq < connectDistSq) {
+                  var alpha = (1 - Math.sqrt(dSq) / CONFIG.connectDist) * CONFIG.lineAlpha;
+                  ctx.strokeStyle = rgba(alpha);
+                  ctx.beginPath();
+                  ctx.moveTo(a.x, a.y);
+                  ctx.lineTo(b.x, b.y);
+                  ctx.stroke();
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -354,23 +428,33 @@ $(function () {
     function drawMouseLinks() {
       if (!mouse.active) return;
       var mc = CONFIG.mouse;
+      ctx.lineWidth = mc.lineWidth;
       for (var i = 0; i < particles.length; i++) {
         var p    = particles[i];
-        var dist = distance(p.x, p.y, mouse.x, mouse.y);
-        drawLine(mouse.x, mouse.y, p.x, p.y, dist, mc.lineDist, mc.lineAlpha, mc.lineWidth);
+        var dSq  = distanceSq(p.x, p.y, mouse.x, mouse.y);
+        if (dSq < mouseLineDistSq) {
+          var dist = Math.sqrt(dSq);
+          var alpha = (1 - dist / mc.lineDist) * mc.lineAlpha;
+          ctx.strokeStyle = rgba(alpha);
+          ctx.beginPath();
+          ctx.moveTo(mouse.x, mouse.y);
+          ctx.lineTo(p.x, p.y);
+          ctx.stroke();
+        }
       }
     }
 
     /**
      * マウスインタラクションを適用
      * @param {Object} p    - パーティクル
-     * @param {number} dist - マウスとの距離
+     * @param {number} dSq  - マウスとの距離の二乗
      * @return {boolean} インタラクションが発生したか
      */
-    function applyMouseInteraction(p, dist) {
+    function applyMouseInteraction(p, dSq) {
       var mc = CONFIG.mouse;
-      if (dist >= mc.radius || dist <= 0) return false;
+      if (dSq >= mouseRadiusSq || dSq <= 0) return false;
 
+      var dist  = Math.sqrt(dSq);
       var ratio = 1 - dist / mc.radius;
 
       // 押し出し
@@ -386,18 +470,21 @@ $(function () {
 
     /** 各パーティクルの描画・物理更新 */
     function updateAndDrawParticles(w, h) {
+      var defaultFill = rgba(CONFIG.dotAlpha);  // ループ外でキャッシュ
+      var driftSpeed  = CONFIG.maxSpeed * CONFIG.driftThresh;
+
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
 
         // マウスインタラクション or デフォルト描画色
         var interacted = false;
         if (mouse.active) {
-          var dist = distance(p.x, p.y, mouse.x, mouse.y);
-          interacted = applyMouseInteraction(p, dist);
+          var dSq = distanceSq(p.x, p.y, mouse.x, mouse.y);
+          interacted = applyMouseInteraction(p, dSq);
         }
         if (!interacted) {
           p.r += (p.baseR - p.r) * CONFIG.radiusRestore;
-          ctx.fillStyle = rgba(CONFIG.dotAlpha);
+          ctx.fillStyle = defaultFill;
         }
 
         // 描画
@@ -411,7 +498,7 @@ $(function () {
 
         // 停滞防止（最低速度を維持）
         var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-        if (speed < CONFIG.maxSpeed * CONFIG.driftThresh) {
+        if (speed < driftSpeed) {
           p.vx += (Math.random() - 0.5) * CONFIG.driftForce;
           p.vy += (Math.random() - 0.5) * CONFIG.driftForce;
         }
@@ -434,6 +521,7 @@ $(function () {
       var h = heroEl.offsetHeight;
 
       ctx.clearRect(0, 0, w, h);
+      buildGrid(w, h);
       drawParticleLinks();
       drawMouseLinks();
       updateAndDrawParticles(w, h);
