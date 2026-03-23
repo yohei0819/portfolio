@@ -445,6 +445,10 @@ button {
 .hero__name-line {
   display: block;
   overflow: hidden;
+}
+
+.hero__name-inner {
+  display: block;
   transform: translateY(120%);
 }
 

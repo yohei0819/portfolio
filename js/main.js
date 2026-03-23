@@ -83,8 +83,8 @@ $(function () {
       if (el) el.style.opacity = '1';
     });
 
-    // hero__name-line の yPercent を解除
-    document.querySelectorAll('.hero__name-line').forEach(function (el) {
+    // hero__name-inner の yPercent を解除
+    document.querySelectorAll('.hero__name-inner').forEach(function (el) {
       el.style.transform = 'none';
     });
   }
@@ -96,7 +96,7 @@ $(function () {
   // =============================================
   function presetScrollTargets() {
     // ヒーロー要素（ローダーの後ろで見えないように事前に非表示）
-    gsap.set('.hero__name-line', { yPercent: 120 });
+    gsap.set('.hero__name-inner', { yPercent: 120 });
 
     // スクロールアニメーション対象
     gsap.set('.section__number', { opacity: 0, y: 40 });
@@ -171,7 +171,7 @@ $(function () {
   function initHeroAnimation() {
     var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-    tl.fromTo('.hero__name-line',
+    tl.fromTo('.hero__name-inner',
         { yPercent: 120 },
         {
           yPercent: 0,
