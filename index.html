@@ -219,6 +219,7 @@
           <button class="works-filter__btn" type="button" data-filter="CSS">CSS</button>
           <button class="works-filter__btn" type="button" data-filter="JavaScript">JavaScript</button>
           <button class="works-filter__btn" type="button" data-filter="GSAP">GSAP</button>
+          <button class="works-filter__btn" type="button" data-filter="Astro">Astro</button>
           <button class="works-filter__btn" type="button" data-filter="TypeScript">TypeScript</button>
           <button class="works-filter__btn" type="button" data-filter="React">React</button>
           <button class="works-filter__btn" type="button" data-filter="Vue.js">Vue.js</button>
@@ -229,6 +230,33 @@
         </div>
 
         <div class="works-grid" id="js-works-grid">
+
+          <article class="work-card js-work-card" data-tags="TypeScript,Astro,React,GSAP"
+            data-detail-role="企画・設計・フロントエンド実装（個人開発）"
+            data-detail-period="2026年4月 — 約1週間"
+            data-detail-point="架空のスペシャルティコーヒーブランド『KURO COFFEE』のブランドサイト。Astro 5 + React 18 で構築し、Lighthouse 全カテゴリ 100 点を達成。ページ遷移に View Transitions（Astro ClientRouter）、ヒーローセクションにマウス追従 Canvas パーティクル（蒸気エフェクト）、商品カードに perspective + rotateX/Y の 3D 傾斜エフェクトを実装。GSAP ScrollTrigger によるスクロール連動アニメーション・テキスト分割演出も盛り込みました。Playwright E2E テスト 28 件・axe アクセシビリティ violations 0 件。">
+            <a href="https://yohei0819.github.io/kuro-coffee/" class="work-card__link" target="_blank" rel="noopener noreferrer">
+              <div class="work-card__image">
+                <img class="work-card__thumb" src="images/work-kuro-coffee.jpg" alt="KURO COFFEE ブランドサイト" loading="lazy" width="1280" height="800">
+              </div>
+              <div class="work-card__body">
+                <ul class="work-card__tags" aria-label="使用技術">
+                  <li class="tag">TypeScript</li>
+                  <li class="tag">Astro</li>
+                  <li class="tag">React</li>
+                  <li class="tag">GSAP</li>
+                </ul>
+                <h3 class="work-card__title">KURO COFFEE ブランドサイト</h3>
+                <p class="work-card__desc">Astro 5 + React 18 で構築した架空コーヒーブランドサイト。Lighthouse 全カテゴリ 100 点・Canvas パーティクル・3D カードエフェクトを実装。</p>
+              </div>
+            </a>
+            <div class="work-card__github">
+              <a href="https://github.com/yohei0819/kuro-coffee" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                GitHub リポジトリ
+              </a>
+            </div>
+          </article>
 
           <article class="work-card js-work-card" data-tags="HTML,CSS,JavaScript"
             data-detail-role="コーディング全般（デザイン〜実装）"
